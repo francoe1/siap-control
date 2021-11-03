@@ -1,0 +1,53 @@
+﻿using SiapControl.Common;
+using System.Diagnostics;
+using System.IO;
+using System.Windows.Forms;
+
+namespace SiapControl
+{
+    public partial class UserModulesForm : Form
+    {
+        private UserModel m_user { get; set; }
+
+        public UserModulesForm(int userId)
+        {
+            m_user = DbContext.Users.FindById(userId);
+            InitializeComponent();
+            Text = $"Módulos en {m_user.User}";
+            LoadData();
+        }
+
+        private void LoadData()
+        {
+            dg1.Rows.Clear();
+
+            foreach(ModuleModel module in DbContext.UserModules.Find(
+                x => x.UserId == m_user.Id && 
+                x.AppName.ToLower().Contains(m_txt_search.Text.ToLower())
+                ))
+            {
+
+                string file = m_user.Path + "\\" + module.AppName + ".exe";
+                if (File.Exists(file))
+                {
+                    ModuleModel currentModule = SiapReader.GetModuleModel(file);
+                    module.AppName = currentModule.AppName;
+                    module.AppVersion = currentModule.AppVersion;
+                }
+
+                dg1.Rows.Add(module.AppName, module.AppVersion);
+            }
+        }
+
+        private void m_txt_search_TextChanged(object sender, System.EventArgs e)
+        {
+            LoadData();
+        }
+
+        private void m_btn_reindex_click(object sender, System.EventArgs e)
+        {
+            ControlForm.UpdateModules(m_user.Id, m_user.Path);
+            LoadData();
+        }
+    }
+}
