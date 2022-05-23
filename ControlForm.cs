@@ -18,6 +18,8 @@ namespace SiapControl
             dt1.CellDoubleClick += OnEditUser;
             dt1.CellClick += OnCellClick;
             Text += $" ({Assembly.GetExecutingAssembly().GetName().Version})";
+
+            DbContext.ExportToJson();
         }
 
         private void OnCellClick(object sender, DataGridViewCellEventArgs e)
@@ -28,7 +30,7 @@ namespace SiapControl
 
         private void OnEditUser(object sender, DataGridViewCellEventArgs e)
         {
-            if (e.RowIndex == -1) return;            
+            if (e.RowIndex == -1) return;
 
             int id = (int)dt1.Rows[e.RowIndex].Cells[0].Value;
             UserModel user = DbContext.Users.FindById(id);
@@ -44,6 +46,7 @@ namespace SiapControl
                 user.User = form.UserName;
                 user.Path = form.SiapPath;
                 DbContext.Users.Update(user);
+                DbContext.ExportToJson();
             }
         }
 
@@ -51,6 +54,7 @@ namespace SiapControl
         {
             int id = (int)e.Row.Cells[0].Value;
             DbContext.Users.Delete(id);
+            DbContext.ExportToJson();
         }
 
         private void LoadData()
@@ -83,6 +87,8 @@ namespace SiapControl
                     module.UserId = userId;
                     DbContext.UserModules.Insert(module);
                 }
+
+                DbContext.ExportToJson();
             }
             catch (Exception ex)
             {
@@ -101,6 +107,7 @@ namespace SiapControl
                     Path = form.SiapPath,
                 });
                 LoadData();
+                DbContext.ExportToJson();
             }
         }
 

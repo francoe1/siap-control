@@ -1,17 +1,15 @@
-﻿using SiapControl.Common;
-using System;
-using System.Collections.Generic;
+﻿using System;
 using System.IO;
-using System.Linq;
-using System.Text;
 using System.Windows.Forms;
 
 namespace SiapControl
 {
     public partial class UserForm : Form
     {
-        public string UserName { get { return m_txt_user.Text; } set { m_txt_user.Text = value; } }
-        public string SiapPath { get { return m_text_path.Text; } set { m_text_path.Text = value; } }
+        public string UserName
+        { get { return m_txt_user.Text; } set { m_txt_user.Text = value; } }
+        public string SiapPath
+        { get { return m_text_path.Text; } set { m_text_path.Text = value; } }
 
         public UserForm()
         {
@@ -26,7 +24,7 @@ namespace SiapControl
             FolderBrowserDialog dialog = new FolderBrowserDialog();
             if (dialog.ShowDialog() == DialogResult.OK)
             {
-                if(!File.Exists(dialog.SelectedPath + "\\siap.exe"))
+                if (!File.Exists(dialog.SelectedPath + "\\siap.exe"))
                 {
                     MessageBox.Show("La ruta seleccionada no es correcta, por favor seleccionar la ruta de instalación de SIAP", "Error");
                     return;

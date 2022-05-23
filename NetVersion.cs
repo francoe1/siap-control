@@ -1,5 +1,4 @@
 ﻿using Microsoft.Win32;
-using System;
 
 namespace SiapControl
 {
@@ -25,7 +24,7 @@ namespace SiapControl
             }
         }
 
-        string CheckFor45PlusVersion(int releaseKey)
+        private string CheckFor45PlusVersion(int releaseKey)
         {
             if (releaseKey >= 528040)
             {
@@ -77,7 +76,7 @@ namespace SiapControl
                 VersionN = 450;
                 return "4.5";
             }
-            VersionN = 0; 
+            VersionN = 0;
             return "No 4.5 or later version detected";
         }
     }

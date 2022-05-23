@@ -32,8 +32,8 @@ namespace SiapControl
             {
                 string file = $@"{info.Path}\{m_setup.AppName}\{m_setup.AppName}.exe";
                 FileVersionInfo version = null;
-                if (File.Exists(file))  version = FileVersionInfo.GetVersionInfo(file);
-               dg_1.Rows.Add(info.Id, info.User, version is null ? "Sin versión previa" :  version.ProductVersion, true);
+                if (File.Exists(file)) version = FileVersionInfo.GetVersionInfo(file);
+                dg_1.Rows.Add(info.Id, info.User, version is null ? "Sin versión previa" : version.ProductVersion, true);
             }
         }
 
@@ -51,7 +51,6 @@ namespace SiapControl
                 if (user is null) continue;
                 users.Add(user);
             }
-
 
             int count = 0;
             foreach (UserModel user in users)
@@ -76,7 +75,7 @@ namespace SiapControl
                             UserId = user.Id,
                             Date = DateTime.Now,
                         });
-                    }                    
+                    }
                 }
 
                 toolStripProgressBar1.Value = (int)(count / (float)users.Count * 100);

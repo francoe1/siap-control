@@ -4,7 +4,7 @@ using System.Windows.Forms;
 
 namespace SiapControl
 {
-    static class Program
+    internal static class Program
     {
         public static bool IsElevated => new WindowsPrincipal(WindowsIdentity.GetCurrent()).IsInRole(WindowsBuiltInRole.Administrator);
 
@@ -12,7 +12,7 @@ namespace SiapControl
         /// Punto de entrada principal para la aplicación.
         /// </summary>
         [STAThread]
-        static void Main()
+        private static void Main()
         {
             try
             {

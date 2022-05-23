@@ -48,7 +48,6 @@ namespace SiapControl.Common
 
                 m_params = File.ReadAllLines(m_pathLST);
 
-
                 Parameter pName = Parameters.Where(x => x.Name.Equals("AppExe")).SingleOrDefault();
                 Parameter pVersion = Parameters.Where(x => x.Name.Equals("VersionApp")).SingleOrDefault();
 
@@ -63,6 +62,7 @@ namespace SiapControl.Common
         }
 
         public async Task<bool> RunInstallerAsync() => await Task.Factory.StartNew(RunInstaller);
+
         public bool RunInstaller()
         {
             Process process = new Process();
@@ -83,6 +83,7 @@ namespace SiapControl.Common
         }
 
         public async Task CreateBackupAsync(string userPath) => await Task.Factory.StartNew(() => CreateBackup(userPath));
+
         public void CreateBackup(string userPath)
         {
             try
@@ -97,7 +98,7 @@ namespace SiapControl.Common
                 if (File.Exists(zipPath)) File.Delete(zipPath);
                 ZipFile.CreateFromDirectory(appPath, zipPath);
             }
-            catch(Exception ex)
+            catch (Exception ex)
             {
                 MessageBox.Show(ex.Message, "Error al crear backup");
             }

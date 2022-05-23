@@ -1,6 +1,8 @@
 ﻿using LiteDB;
+using Newtonsoft.Json;
 using System;
 using System.IO;
+using System.Linq;
 using System.Windows.Forms;
 
 namespace SiapControl
@@ -13,8 +15,11 @@ namespace SiapControl
         public static ILiteCollection<UpdateRegister> UpdateRegisters { get; private set; }
         public static ILiteCollection<ModuleModel> UserModules { get; private set; }
 
+        public static DbContext Instance { get; private set; }
+
         public DbContext()
         {
+            Instance = this;
             string conf = $@"{AppDomain.CurrentDomain.BaseDirectory}db.conf";
             string path = $@"{AppDomain.CurrentDomain.BaseDirectory}program.db";
             if (!File.Exists(conf)) File.WriteAllText(conf, path);
@@ -33,6 +38,21 @@ namespace SiapControl
             Users = m_connection.GetCollection<UserModel>();
             UpdateRegisters = m_connection.GetCollection<UpdateRegister>();
             UserModules = m_connection.GetCollection<ModuleModel>();
+        }
+
+        public static void ExportToJson()
+        {
+            try
+            {
+                string userJson = JsonConvert.SerializeObject(Users.FindAll().ToArray());
+                string modulesJson = JsonConvert.SerializeObject(UserModules.FindAll().ToArray());
+                string output = $@"{AppDomain.CurrentDomain.BaseDirectory}db.json";
+                File.WriteAllText(output, "{" + $"\"users\":{userJson}, \"modules\":{modulesJson}" + "}");
+            }
+            catch (Exception ex)
+            {
+                MessageBox.Show(ex.Message, "Error al exportar JSON");
+            }
         }
     }
 }

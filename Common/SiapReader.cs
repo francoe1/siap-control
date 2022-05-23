@@ -1,10 +1,7 @@
-﻿using System;
-using System.Collections.Generic;
+﻿using System.Collections.Generic;
 using System.Diagnostics;
 using System.IO;
 using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 
 namespace SiapControl.Common
 {
@@ -39,7 +36,7 @@ namespace SiapControl.Common
                 {
                     Modules[i] = GetModuleModel(files[i]);
                 }
-            }           
+            }
         }
 
         public static ModuleModel GetModuleModel(string file)

@@ -1,5 +1,4 @@
 ﻿using SiapControl.Common;
-using System.Diagnostics;
 using System.IO;
 using System.Windows.Forms;
 
@@ -21,12 +20,11 @@ namespace SiapControl
         {
             dg1.Rows.Clear();
 
-            foreach(ModuleModel module in DbContext.UserModules.Find(
-                x => x.UserId == m_user.Id && 
+            foreach (ModuleModel module in DbContext.UserModules.Find(
+                x => x.UserId == m_user.Id &&
                 x.AppName.ToLower().Contains(m_txt_search.Text.ToLower())
                 ))
             {
-
                 string file = m_user.Path + "\\" + module.AppName + ".exe";
                 if (File.Exists(file))
                 {
