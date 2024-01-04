@@ -1,19 +1,20 @@
 ﻿using LiteDB;
 using Newtonsoft.Json;
+using SiapControl.Data.Models;
 using System;
 using System.IO;
 using System.Linq;
 using System.Threading.Tasks;
 using System.Windows.Forms;
 
-namespace SiapControl
+namespace SiapControl.Data
 {
     public static class Database
     {
         private static LiteDatabase m_connection { get; set; }
 
         public static ILiteCollection<UserModel> Users { get; private set; }
-        public static ILiteCollection<UpdateRegister> UpdateRegisters { get; private set; }
+        public static ILiteCollection<UpdateRegisterModel> UpdateRegisters { get; private set; }
         public static ILiteCollection<ModuleModel> UserModules { get; private set; }
 
         public static Task ConnectAsync()
@@ -23,7 +24,7 @@ namespace SiapControl
                 string path = Path.Combine(AppDomain.CurrentDomain.BaseDirectory, "program.db");
                 m_connection = new LiteDatabase(path);
                 Users = m_connection.GetCollection<UserModel>();
-                UpdateRegisters = m_connection.GetCollection<UpdateRegister>();
+                UpdateRegisters = m_connection.GetCollection<UpdateRegisterModel>();
                 UserModules = m_connection.GetCollection<ModuleModel>();
             });
         }

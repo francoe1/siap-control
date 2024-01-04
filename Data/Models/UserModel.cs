@@ -1,4 +1,4 @@
-﻿namespace SiapControl
+﻿namespace SiapControl.Data.Models
 {
     public class UserModel
     {

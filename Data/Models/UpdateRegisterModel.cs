@@ -1,8 +1,8 @@
 ﻿using System;
 
-namespace SiapControl
+namespace SiapControl.Data.Models
 {
-    public class UpdateRegister
+    public class UpdateRegisterModel
     {
         public int Id { get; set; }
         public int UserId { get; set; }

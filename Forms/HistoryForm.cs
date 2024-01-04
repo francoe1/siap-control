@@ -1,4 +1,6 @@
-﻿using System;
+﻿using SiapControl.Data;
+using SiapControl.Data.Models;
+using System;
 using System.Linq;
 using System.Windows.Forms;
 
@@ -17,7 +19,7 @@ namespace SiapControl
         {
             dg1.Rows.Clear();
 
-            foreach (UpdateRegister register in Database.UpdateRegisters
+            foreach (UpdateRegisterModel register in Database.UpdateRegisters
                 .Find(x => x.Date.AddDays(90) > DateTime.Now && (
                 x.AppName.ToLower().Contains(m_txt_search.Text) ||
                 x.AppVersion.ToLower().Contains(m_txt_search.Text))).OrderByDescending(x => x.Date))

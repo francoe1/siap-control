@@ -1,4 +1,6 @@
 ﻿using SiapControl.Common;
+using SiapControl.Data;
+using SiapControl.Data.Models;
 using System;
 using System.Collections.Generic;
 using System.Diagnostics;
@@ -68,7 +70,7 @@ namespace SiapControl
                     {
                         FileVersionInfo info = FileVersionInfo.GetVersionInfo(file);
 
-                        Database.UpdateRegisters.Insert(new UpdateRegister
+                        Database.UpdateRegisters.Insert(new UpdateRegisterModel
                         {
                             AppName = info.ProductName,
                             AppVersion = info.ProductVersion,

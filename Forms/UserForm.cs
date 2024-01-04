@@ -8,6 +8,7 @@ namespace SiapControl
     {
         public string UserName
         { get { return m_txt_user.Text; } set { m_txt_user.Text = value; } }
+
         public string SiapPath
         { get { return m_text_path.Text; } set { m_text_path.Text = value; } }
 
