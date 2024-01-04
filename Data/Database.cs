@@ -11,7 +11,7 @@ namespace SiapControl.Data
 {
     public static class Database
     {
-        private static LiteDatabase m_connection { get; set; }
+        private static LiteDatabase _connection { get; set; }
 
         public static ILiteCollection<UserModel> Users { get; private set; }
         public static ILiteCollection<UpdateRegisterModel> UpdateRegisters { get; private set; }
@@ -22,10 +22,10 @@ namespace SiapControl.Data
             return Task.Run(() =>
             {
                 string path = Path.Combine(AppDomain.CurrentDomain.BaseDirectory, "program.db");
-                m_connection = new LiteDatabase(path);
-                Users = m_connection.GetCollection<UserModel>();
-                UpdateRegisters = m_connection.GetCollection<UpdateRegisterModel>();
-                UserModules = m_connection.GetCollection<ModuleModel>();
+                _connection = new LiteDatabase(path);
+                Users = _connection.GetCollection<UserModel>();
+                UpdateRegisters = _connection.GetCollection<UpdateRegisterModel>();
+                UserModules = _connection.GetCollection<ModuleModel>();
             });
         }
 

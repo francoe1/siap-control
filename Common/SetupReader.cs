@@ -12,51 +12,50 @@ namespace SiapControl.Common
 {
     public class SetupReader
     {
-        private string m_path { get; set; }
-        private string m_pathLST { get; set; }
         public string AppName { get; set; }
         public string AppVersion { get; set; }
 
-        private string[] m_params { get; set; }
-
+        private string _path { get; set; }
+        private string _pathLST { get; set; }
+        private string[] _params { get; set; }
         private string _lstContent { get; set; }
 
         public SetupReader(string path)
         {
-            m_path = path;
-            m_pathLST = $"{m_path.ToLower().Replace(".exe", ".lst")}";
+            _path = path;
+            _pathLST = $"{_path.ToLower().Replace(".exe", ".lst")}";
         }
 
         public bool Open()
         {
             try
             {
-                if (Path.GetExtension(m_path).ToLower().Equals("exe"))
+                if (Path.GetExtension(_path).ToLower().Equals("exe"))
                 {
                     MessageBox.Show("El archivo debe ser un ejecutable", "Error");
                     return false;
                 }
 
-                if (!File.Exists(m_path))
+                if (!File.Exists(_path))
                 {
                     MessageBox.Show("No se encuentra el archivo", "Error");
                     return false;
                 }
 
-                if (!File.Exists(m_pathLST))
+                if (!File.Exists(_pathLST))
                 {
                     MessageBox.Show("No se encuentra el archivo .LST", "Error");
                     return false;
                 }
 
-                m_params = File.ReadAllLines(m_pathLST);
-                _lstContent = File.ReadAllText(m_pathLST);
+                _params = File.ReadAllLines(_pathLST);
+                _lstContent = File.ReadAllText(_pathLST);
 
                 Parameter pName = Parameters.Where(x => x.Name.Equals("AppExe")).SingleOrDefault();
                 Parameter pVersion = Parameters.Where(x => x.Name.Equals("VersionApp")).SingleOrDefault();
 
-                if (pName is object) AppName = pName.Value.Replace(".exe", "");
-                if (pVersion is object) AppVersion = pVersion.Value.Replace("\"", "");
+                if (pName.IsValid) AppName = pName.Value.Replace(".exe", "");
+                if (pVersion.IsValid) AppVersion = pVersion.Value.Replace("\"", "");
             }
             catch (Exception ex)
             {
@@ -70,12 +69,12 @@ namespace SiapControl.Common
         private bool RunInstaller(string targetPath)
         {
             Process process = new Process();
-            process.StartInfo.FileName = m_path;
+            process.StartInfo.FileName = _path;
             process.StartInfo.CreateNoWindow = true;
             // process.StartInfo.Arguments = "/quiet";
             process.StartInfo.Verb = "runas";
 
-            File.WriteAllText(m_pathLST, Regex.Replace(_lstContent, @"DefaultDir=\$\(ProgramFiles\)\\", "DefaultDir=" + targetPath.Replace("\\", "\\\\") + "\\"));
+            File.WriteAllText(_pathLST, Regex.Replace(_lstContent, @"DefaultDir=\$\(ProgramFiles\)\\", "DefaultDir=" + targetPath.Replace("\\", "\\\\") + "\\"));
 
             if (!process.Start())
             {
@@ -117,7 +116,7 @@ namespace SiapControl.Common
 
         public void Close()
         {
-            File.WriteAllText(m_pathLST, _lstContent);
+            File.WriteAllText(_pathLST, _lstContent);
         }
 
         private IEnumerable<Parameter> Parameters
@@ -125,13 +124,13 @@ namespace SiapControl.Common
             get
             {
                 {
-                    for (int i = 0; i < m_params.Length; i++)
+                    for (int i = 0; i < _params.Length; i++)
                     {
-                        string[] parts = m_params[i].Split('=');
+                        string[] parts = _params[i].Split('=');
                         if (parts.Length < 2) continue;
 
                         string name = parts[0].TrimStart('=');
-                        string value = m_params[i].Replace(parts[0], "").TrimStart('=');
+                        string value = _params[i].Replace(parts[0], "").TrimStart('=');
 
                         yield return new Parameter(name, value);
                     }

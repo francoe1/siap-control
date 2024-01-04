@@ -6,26 +6,32 @@ using System.IO;
 using System.Reflection;
 using System.Windows.Forms;
 
-namespace SiapControl
+namespace SiapControl.Forms
 {
     public partial class ControlForm : Form
     {
-        private int m_currentRow { get; set; } = -1;
+        private int _currentRow { get; set; } = -1;
 
         public ControlForm()
         {
             InitializeComponent();
+            Focus();
             dt1.UserDeletedRow += OnDeleteUser;
             dt1.CellDoubleClick += OnEditUser;
             dt1.CellClick += OnCellClick;
             Text += $" ({Assembly.GetExecutingAssembly().GetName().Version})";
             LoadDataAsync();
+
+
+            ToolTip btnUpdateTooltip = new ToolTip();
+            m_btn_update.Enabled = User.IsAdministrator;
+            btnUpdateTooltip.SetToolTip(m_btn_update, "Require administrator right");
         }
 
         private void OnCellClick(object sender, DataGridViewCellEventArgs e)
         {
-            m_currentRow = e.RowIndex;
-            m_btn_modules.Enabled = m_currentRow != -1;
+            _currentRow = e.RowIndex;
+            m_btn_modules.Enabled = _currentRow != -1;
         }
 
         private void OnEditUser(object sender, DataGridViewCellEventArgs e)
@@ -43,6 +49,8 @@ namespace SiapControl
             {
                 dt1.Rows[e.RowIndex].Cells[1].Value = form.UserName;
                 dt1.Rows[e.RowIndex].Cells[2].Value = form.SiapPath;
+
+
                 user.User = form.UserName;
                 user.Path = form.SiapPath;
                 Database.Users.Update(user);
@@ -80,7 +88,7 @@ namespace SiapControl
 
             if (dt1.Rows.Count > 0)
             {
-                m_currentRow = 0;
+                _currentRow = 0;
                 m_btn_modules.Enabled = true;
             }
         }
@@ -153,9 +161,9 @@ namespace SiapControl
 
         private void m_btn_modules_Click(object sender, EventArgs e)
         {
-            if (m_currentRow != -1)
+            if (_currentRow != -1)
             {
-                UserModulesForm form = new UserModulesForm((int)dt1.Rows[m_currentRow].Cells[0].Value);
+                UserModulesForm form = new UserModulesForm((int)dt1.Rows[_currentRow].Cells[0].Value);
                 form.ShowDialog();
             }
         }

@@ -1,4 +1,4 @@
-﻿namespace SiapControl
+﻿namespace SiapControl.Forms
 {
     partial class ControlForm
     {
@@ -35,9 +35,9 @@
             this.groupBox1 = new System.Windows.Forms.GroupBox();
             this.m_btn_modules = new System.Windows.Forms.Button();
             this.groupBox2 = new System.Windows.Forms.GroupBox();
-            this.dt1_id = new System.Windows.Forms.DataGridViewTextBoxColumn();
-            this.dt1_user_name = new System.Windows.Forms.DataGridViewTextBoxColumn();
             this.dt1_siap_path = new System.Windows.Forms.DataGridViewTextBoxColumn();
+            this.dt1_user_name = new System.Windows.Forms.DataGridViewTextBoxColumn();
+            this.dt1_id = new System.Windows.Forms.DataGridViewTextBoxColumn();
             ((System.ComponentModel.ISupportInitialize)(this.dt1)).BeginInit();
             this.groupBox1.SuspendLayout();
             this.groupBox2.SuspendLayout();
@@ -124,12 +124,12 @@
             this.groupBox2.TabStop = false;
             this.groupBox2.Text = "Instalaciones";
             // 
-            // dt1_id
+            // dt1_siap_path
             // 
-            this.dt1_id.HeaderText = "ID";
-            this.dt1_id.Name = "dt1_id";
-            this.dt1_id.ReadOnly = true;
-            this.dt1_id.Visible = false;
+            this.dt1_siap_path.AutoSizeMode = System.Windows.Forms.DataGridViewAutoSizeColumnMode.Fill;
+            this.dt1_siap_path.HeaderText = "Ruta";
+            this.dt1_siap_path.Name = "dt1_siap_path";
+            this.dt1_siap_path.ReadOnly = true;
             // 
             // dt1_user_name
             // 
@@ -139,12 +139,12 @@
             this.dt1_user_name.ReadOnly = true;
             this.dt1_user_name.Width = 68;
             // 
-            // dt1_siap_path
+            // dt1_id
             // 
-            this.dt1_siap_path.AutoSizeMode = System.Windows.Forms.DataGridViewAutoSizeColumnMode.Fill;
-            this.dt1_siap_path.HeaderText = "Ruta";
-            this.dt1_siap_path.Name = "dt1_siap_path";
-            this.dt1_siap_path.ReadOnly = true;
+            this.dt1_id.HeaderText = "ID";
+            this.dt1_id.Name = "dt1_id";
+            this.dt1_id.ReadOnly = true;
+            this.dt1_id.Visible = false;
             // 
             // ControlForm
             // 

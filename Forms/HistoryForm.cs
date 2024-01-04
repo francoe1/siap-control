@@ -4,7 +4,7 @@ using System;
 using System.Linq;
 using System.Windows.Forms;
 
-namespace SiapControl
+namespace SiapControl.Forms
 {
     public partial class HistoryForm : Form
     {

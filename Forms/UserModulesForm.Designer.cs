@@ -1,4 +1,4 @@
-﻿namespace SiapControl
+﻿namespace SiapControl.Forms
 {
     partial class UserModulesForm
     {

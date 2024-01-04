@@ -1,4 +1,4 @@
-﻿namespace SiapControl
+﻿namespace SiapControl.Forms
 {
     partial class InstallerForm
     {
@@ -55,7 +55,7 @@
             this.m_btn_start.TabIndex = 0;
             this.m_btn_start.Text = "Iniciar";
             this.m_btn_start.UseVisualStyleBackColor = true;
-            this.m_btn_start.Click += new System.EventHandler(this.m_btn_start_Click);
+            this.m_btn_start.Click += new System.EventHandler(this.m_btn_start_ClickAsync);
             // 
             // groupBox1
             // 

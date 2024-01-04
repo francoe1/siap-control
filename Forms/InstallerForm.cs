@@ -7,22 +7,22 @@ using System.Diagnostics;
 using System.IO;
 using System.Windows.Forms;
 
-namespace SiapControl
+namespace SiapControl.Forms
 {
     public partial class InstallerForm : Form
     {
         private const string AFIP_PATH = @"C:\Windows\afipPath.sys";
-        private SetupReader m_setup { get; set; }
+        private SetupReader _setup { get; set; }
 
         public InstallerForm(SetupReader setup)
         {
-            m_setup = setup;
+            _setup = setup;
             InitializeComponent();
 
-            toolStripStatusLabel1.Text = $"Actualizar {m_setup.AppName} {m_setup.AppVersion}";
+            toolStripStatusLabel1.Text = $"Actualizar {_setup.AppName} {_setup.AppVersion}";
 
-            label1.Text = m_setup.AppName;
-            label2.Text = m_setup.AppVersion;
+            label1.Text = _setup.AppName;
+            label2.Text = _setup.AppVersion;
 
             LoadDataGrid();
         }
@@ -32,14 +32,14 @@ namespace SiapControl
             dg_1.Rows.Clear();
             foreach (UserModel info in Database.Users.FindAll())
             {
-                string file = $@"{info.Path}\{m_setup.AppName}\{m_setup.AppName}.exe";
+                string file = $@"{info.Path}\{_setup.AppName}\{_setup.AppName}.exe";
                 FileVersionInfo version = null;
                 if (File.Exists(file)) version = FileVersionInfo.GetVersionInfo(file);
                 dg_1.Rows.Add(info.Id, info.User, version is null ? "Sin versión previa" : version.ProductVersion, true);
             }
         }
 
-        private async void m_btn_start_Click(object sender, EventArgs e)
+        private async void m_btn_start_ClickAsync(object sender, EventArgs e)
         {
             m_btn_start.Enabled = false;
             List<UserModel> users = new List<UserModel>();
@@ -61,11 +61,11 @@ namespace SiapControl
                 toolStripStatusLabel1.Text = $"{user.User} | Iniciando";
                 File.WriteAllText(AFIP_PATH, user.Path);
                 toolStripStatusLabel1.Text = $"{user.User} | Backup";
-                m_setup.CreateBackup(user.Path);
+                _setup.CreateBackup(user.Path);
                 toolStripStatusLabel1.Text = $"{user.User} | Instalando";
-                if (await m_setup.RunInstallerAsync(user.Path))
+                if (await _setup.RunInstallerAsync(user.Path))
                 {
-                    string file = $@"{user.Path}\{m_setup.AppName}\{m_setup.AppName}.exe";
+                    string file = $@"{user.Path}\{_setup.AppName}\{_setup.AppName}.exe";
                     if (File.Exists(file))
                     {
                         FileVersionInfo info = FileVersionInfo.GetVersionInfo(file);
@@ -84,7 +84,7 @@ namespace SiapControl
                 ControlForm.UpdateModules(user.Id, user.Path);
             }
 
-            m_setup.Close();
+            _setup.Close();
             m_btn_start.Enabled = true;
         }
     }

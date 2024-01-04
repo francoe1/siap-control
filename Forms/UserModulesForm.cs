@@ -4,17 +4,17 @@ using SiapControl.Data.Models;
 using System.IO;
 using System.Windows.Forms;
 
-namespace SiapControl
+namespace SiapControl.Forms
 {
     public partial class UserModulesForm : Form
     {
-        private UserModel m_user { get; set; }
+        private UserModel _user { get; set; }
 
         public UserModulesForm(int userId)
         {
-            m_user = Database.Users.FindById(userId);
+            _user = Database.Users.FindById(userId);
             InitializeComponent();
-            Text = $"Módulos en {m_user.User}";
+            Text = $"Módulos en {_user.User}";
             LoadData();
         }
 
@@ -23,11 +23,11 @@ namespace SiapControl
             dg1.Rows.Clear();
 
             foreach (ModuleModel module in Database.UserModules.Find(
-                x => x.UserId == m_user.Id &&
+                x => x.UserId == _user.Id &&
                 x.AppName.ToLower().Contains(m_txt_search.Text.ToLower())
                 ))
             {
-                string file = m_user.Path + "\\" + module.AppName + ".exe";
+                string file = _user.Path + "\\" + module.AppName + ".exe";
                 if (File.Exists(file))
                 {
                     ModuleModel currentModule = SiapReader.GetModuleModel(file);
@@ -46,7 +46,7 @@ namespace SiapControl
 
         private void m_btn_reindex_click(object sender, System.EventArgs e)
         {
-            ControlForm.UpdateModules(m_user.Id, m_user.Path);
+            ControlForm.UpdateModules(_user.Id, _user.Path);
             LoadData();
         }
     }
