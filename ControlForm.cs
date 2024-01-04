@@ -13,13 +13,11 @@ namespace SiapControl
         public ControlForm()
         {
             InitializeComponent();
-            LoadData();
             dt1.UserDeletedRow += OnDeleteUser;
             dt1.CellDoubleClick += OnEditUser;
             dt1.CellClick += OnCellClick;
             Text += $" ({Assembly.GetExecutingAssembly().GetName().Version})";
-
-            DbContext.ExportToJson();
+            LoadDataAsync();
         }
 
         private void OnCellClick(object sender, DataGridViewCellEventArgs e)
@@ -33,7 +31,7 @@ namespace SiapControl
             if (e.RowIndex == -1) return;
 
             int id = (int)dt1.Rows[e.RowIndex].Cells[0].Value;
-            UserModel user = DbContext.Users.FindById(id);
+            UserModel user = Database.Users.FindById(id);
             UserForm form = new UserForm
             {
                 UserName = user.User,
@@ -45,23 +43,34 @@ namespace SiapControl
                 dt1.Rows[e.RowIndex].Cells[2].Value = form.SiapPath;
                 user.User = form.UserName;
                 user.Path = form.SiapPath;
-                DbContext.Users.Update(user);
-                DbContext.ExportToJson();
+                Database.Users.Update(user);
+                Database.ExportToJsonAsync();
             }
         }
 
         private void OnDeleteUser(object sender, DataGridViewRowEventArgs e)
         {
             int id = (int)e.Row.Cells[0].Value;
-            DbContext.Users.Delete(id);
-            DbContext.ExportToJson();
+            Database.Users.Delete(id);
+            Database.ExportToJsonAsync();
         }
 
-        private void LoadData()
+        private async void LoadDataAsync()
         {
-            new DbContext();
+            string title = Text;
+            Text += " (Cargando ...)";
+            Enabled = false;
+            await Database.ConnectAsync();
+            await Database.ExportToJsonAsync();
+            UpdateUserTable();
+            Text = title;
+            Enabled = true;
+        }
+
+        private void UpdateUserTable()
+        {
             dt1.Rows.Clear();
-            foreach (UserModel info in DbContext.Users.FindAll())
+            foreach (UserModel info in Database.Users.FindAll())
             {
                 dt1.Rows.Add(info.Id, info.User, info.Path);
                 UpdateModules(info.Id, info.Path);
@@ -81,14 +90,18 @@ namespace SiapControl
             try
             {
                 SiapReader reader = new SiapReader(path);
-                DbContext.UserModules.DeleteMany(x => x.UserId == userId);
-                foreach (ModuleModel module in reader.Modules)
+                Database.UserModules.DeleteMany(x => x.UserId == userId);
+
+                if (reader.Modules != null)
                 {
-                    module.UserId = userId;
-                    DbContext.UserModules.Insert(module);
+                    foreach (ModuleModel module in reader.Modules)
+                    {
+                        module.UserId = userId;
+                        Database.UserModules.Insert(module);
+                    }
                 }
 
-                DbContext.ExportToJson();
+                Database.ExportToJsonAsync();
             }
             catch (Exception ex)
             {
@@ -101,13 +114,13 @@ namespace SiapControl
             UserForm form = new UserForm();
             if (form.ShowDialog() == DialogResult.OK)
             {
-                DbContext.Users.Insert(new UserModel
+                Database.Users.Insert(new UserModel
                 {
                     User = form.UserName,
                     Path = form.SiapPath,
                 });
-                LoadData();
-                DbContext.ExportToJson();
+                UpdateUserTable();
+                Database.ExportToJsonAsync();
             }
         }
 

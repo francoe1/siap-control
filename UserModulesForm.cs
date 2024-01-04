@@ -10,7 +10,7 @@ namespace SiapControl
 
         public UserModulesForm(int userId)
         {
-            m_user = DbContext.Users.FindById(userId);
+            m_user = Database.Users.FindById(userId);
             InitializeComponent();
             Text = $"Módulos en {m_user.User}";
             LoadData();
@@ -20,7 +20,7 @@ namespace SiapControl
         {
             dg1.Rows.Clear();
 
-            foreach (ModuleModel module in DbContext.UserModules.Find(
+            foreach (ModuleModel module in Database.UserModules.Find(
                 x => x.UserId == m_user.Id &&
                 x.AppName.ToLower().Contains(m_txt_search.Text.ToLower())
                 ))

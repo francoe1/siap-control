@@ -4,6 +4,7 @@ using System.Diagnostics;
 using System.IO;
 using System.IO.Compression;
 using System.Linq;
+using System.Text.RegularExpressions;
 using System.Threading.Tasks;
 using System.Windows.Forms;
 
@@ -17,6 +18,8 @@ namespace SiapControl.Common
         public string AppVersion { get; set; }
 
         private string[] m_params { get; set; }
+
+        private string _lstContent { get; set; }
 
         public SetupReader(string path)
         {
@@ -47,6 +50,7 @@ namespace SiapControl.Common
                 }
 
                 m_params = File.ReadAllLines(m_pathLST);
+                _lstContent = File.ReadAllText(m_pathLST);
 
                 Parameter pName = Parameters.Where(x => x.Name.Equals("AppExe")).SingleOrDefault();
                 Parameter pVersion = Parameters.Where(x => x.Name.Equals("VersionApp")).SingleOrDefault();
@@ -61,13 +65,18 @@ namespace SiapControl.Common
             return true;
         }
 
-        public async Task<bool> RunInstallerAsync() => await Task.Factory.StartNew(RunInstaller);
+        public async Task<bool> RunInstallerAsync(string targetPath) => await Task.Factory.StartNew(() => RunInstaller(targetPath));
 
-        public bool RunInstaller()
+        private bool RunInstaller(string targetPath)
         {
             Process process = new Process();
             process.StartInfo.FileName = m_path;
             process.StartInfo.CreateNoWindow = true;
+            // process.StartInfo.Arguments = "/quiet";
+            process.StartInfo.Verb = "runas";
+
+            File.WriteAllText(m_pathLST, Regex.Replace(_lstContent, @"DefaultDir=\$\(ProgramFiles\)\\", "DefaultDir=" + targetPath.Replace("\\", "\\\\") + "\\"));
+
             if (!process.Start())
             {
                 MessageBox.Show("Error al iniciar el instalador");
@@ -75,6 +84,8 @@ namespace SiapControl.Common
             }
 
             process.WaitForExit();
+
+            MessageBox.Show(process.ExitCode.ToString());
 
             return MessageBox.Show(
                 "¿La instalación se realizo correctamente?",
@@ -104,6 +115,11 @@ namespace SiapControl.Common
             }
         }
 
+        public void Close()
+        {
+            File.WriteAllText(m_pathLST, _lstContent);
+        }
+
         private IEnumerable<Parameter> Parameters
         {
             get
@@ -123,10 +139,12 @@ namespace SiapControl.Common
             }
         }
 
-        public class Parameter
+        public readonly struct Parameter
         {
-            public string Name { get; private set; }
-            public string Value { get; private set; }
+            public string Name { get; }
+            public string Value { get; }
+
+            public bool IsValid => !string.IsNullOrEmpty(Name);
 
             public Parameter(string name, string value)
             {

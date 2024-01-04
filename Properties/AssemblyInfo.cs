@@ -1,4 +1,5 @@
-﻿using System.Reflection;
+﻿using System.Resources;
+using System.Reflection;
 using System.Runtime.InteropServices;
 
 // La información general de un ensamblado se controla mediante el siguiente
@@ -7,10 +8,10 @@ using System.Runtime.InteropServices;
 [assembly: AssemblyTitle("SiapControl")]
 [assembly: AssemblyDescription("Administrador de multiples instancias de SIAP.")]
 [assembly: AssemblyConfiguration("")]
-[assembly: AssemblyCompany("FRSoluciones")]
+[assembly: AssemblyCompany("Franco Rosatto")]
 [assembly: AssemblyProduct("SiapControl")]
-[assembly: AssemblyCopyright("Copyright ©  2020")]
-[assembly: AssemblyTrademark("")]
+[assembly: AssemblyCopyright("Copyright ©  2023")]
+[assembly: AssemblyTrademark("Franco Rosatto")]
 [assembly: AssemblyCulture("")]
 
 // Si establece ComVisible en false, los tipos de este ensamblado no estarán visibles
@@ -31,5 +32,6 @@ using System.Runtime.InteropServices;
 // Puede especificar todos los valores o usar los valores predeterminados de número de compilación y de revisión
 // utilizando el carácter "*", como se muestra a continuación:
 // [assembly: AssemblyVersion("1.0.*")]
-[assembly: AssemblyVersion("1.0.3.1")]
-[assembly: AssemblyFileVersion("1.0.3.1")]
+[assembly: AssemblyVersion("1.0.4.1")]
+[assembly: AssemblyFileVersion("1.0.4.1")]
+[assembly: NeutralResourcesLanguage("es-AR")]

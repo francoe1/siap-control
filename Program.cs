@@ -22,7 +22,6 @@ namespace SiapControl
                 if (!IsElevated)
                 {
                     MessageBox.Show("Necesitas permisos de administrador", "Error");
-                    return;
                 }
 
                 NetVersion netVersion = new NetVersion();

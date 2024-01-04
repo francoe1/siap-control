@@ -28,7 +28,7 @@ namespace SiapControl
         private void LoadDataGrid()
         {
             dg_1.Rows.Clear();
-            foreach (UserModel info in DbContext.Users.FindAll())
+            foreach (UserModel info in Database.Users.FindAll())
             {
                 string file = $@"{info.Path}\{m_setup.AppName}\{m_setup.AppName}.exe";
                 FileVersionInfo version = null;
@@ -47,7 +47,7 @@ namespace SiapControl
                 if (row.Cells["active"].Value is false) continue;
 
                 int id = (int)row.Cells[0].Value;
-                UserModel user = DbContext.Users.FindById(id);
+                UserModel user = Database.Users.FindById(id);
                 if (user is null) continue;
                 users.Add(user);
             }
@@ -61,14 +61,14 @@ namespace SiapControl
                 toolStripStatusLabel1.Text = $"{user.User} | Backup";
                 m_setup.CreateBackup(user.Path);
                 toolStripStatusLabel1.Text = $"{user.User} | Instalando";
-                if (await m_setup.RunInstallerAsync())
+                if (await m_setup.RunInstallerAsync(user.Path))
                 {
                     string file = $@"{user.Path}\{m_setup.AppName}\{m_setup.AppName}.exe";
                     if (File.Exists(file))
                     {
                         FileVersionInfo info = FileVersionInfo.GetVersionInfo(file);
 
-                        DbContext.UpdateRegisters.Insert(new UpdateRegister
+                        Database.UpdateRegisters.Insert(new UpdateRegister
                         {
                             AppName = info.ProductName,
                             AppVersion = info.ProductVersion,
@@ -81,6 +81,8 @@ namespace SiapControl
                 toolStripProgressBar1.Value = (int)(count / (float)users.Count * 100);
                 ControlForm.UpdateModules(user.Id, user.Path);
             }
+
+            m_setup.Close();
             m_btn_start.Enabled = true;
         }
     }

@@ -17,12 +17,12 @@ namespace SiapControl
         {
             dg1.Rows.Clear();
 
-            foreach (UpdateRegister register in DbContext.UpdateRegisters
+            foreach (UpdateRegister register in Database.UpdateRegisters
                 .Find(x => x.Date.AddDays(90) > DateTime.Now && (
                 x.AppName.ToLower().Contains(m_txt_search.Text) ||
                 x.AppVersion.ToLower().Contains(m_txt_search.Text))).OrderByDescending(x => x.Date))
             {
-                UserModel user = DbContext.Users.FindById(register.UserId);
+                UserModel user = Database.Users.FindById(register.UserId);
                 if (user is null) continue;
 
                 dg1.Rows.Add(user.User, register.AppName, register.AppVersion, register.Date);
