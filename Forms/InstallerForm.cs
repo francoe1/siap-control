@@ -20,12 +20,8 @@ namespace SiapControl.Forms
         {
             _setup = setup;
             InitializeComponent();
-
-            toolStripStatusLabel1.Text = $"Actualizar {_setup.AppName} {_setup.AppVersion}";
-
             label1.Text = _setup.AppName;
             label2.Text = _setup.AppVersion;
-
             LoadDataGrid();
         }
 
@@ -56,17 +52,15 @@ namespace SiapControl.Forms
                 users.Add(user);
             }
 
+            int installed = 0;
+
             for (int i = 0; i < users.Count; i++)
             {
                 UserModel user = users[i];
-                toolStripStatusLabel1.Text = $"{user.User} | Iniciando";
                 File.WriteAllText(AFIP_PATH, user.Path);
-                toolStripStatusLabel1.Text = $"{user.User} | Backup";
-                _setup.CreateBackup(user.Path);
-                toolStripStatusLabel1.Text = $"{user.User} | Instalando";
+                await _setup.CreateBackupAsync(user.Path);
 
                 var title = _setup.Parameters.First(x => x.Name.Equals("Title")).Value;
-
 
                 var setupAutoIntaller = new SetupAutoInstaller(title, _setup.Path);
                 if (await setupAutoIntaller.InstallAsync())
@@ -80,11 +74,14 @@ namespace SiapControl.Forms
 
                         if (module == null)
                         {
-                            module.UserId = user.Id;
-                            module.AppVersion = info.ProductVersion;
-                            module.AppName = info.ProductName;
-                            module.LastUpdate = DateTime.Now; 
-                            Database.UserModules.Insert (module);
+                            module = new ModuleModel
+                            {
+                                UserId = user.Id,
+                                AppVersion = info.ProductVersion,
+                                AppName = info.ProductName,
+                                LastUpdate = DateTime.Now
+                            };
+                            Database.UserModules.Insert(module);
                         }
                         else
                         {
@@ -93,14 +90,19 @@ namespace SiapControl.Forms
                             Database.UserModules.Update(module);
                         }
                     }
+                    installed++;
                 }
-
-                toolStripProgressBar1.Value = (int)(i / (float)users.Count * 100);
-                ControlForm.UpdateModules(user.Id, user.Path);
             }
 
-            _setup.Close();
             m_btn_start.Enabled = true;
+
+            if (users.Count == installed)
+            {
+                Close();
+
+                MessageBox.Show($"Se instalaron {installed} de {users.Count}", "Instalación Finalizada");
+            }
+
         }
     }
 }

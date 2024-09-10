@@ -113,9 +113,16 @@ namespace SiapControl.Common
 
         private static async Task PressEnter(IntPtr button)
         {
-            PostMessage(button, WM_KEYDOWN, (IntPtr)VK_RETURN, IntPtr.Zero);
-            await Task.Delay(10);
-            PostMessage(button, WM_KEYUP, (IntPtr)VK_RETURN, IntPtr.Zero);
+            try
+            {
+                PostMessage(button, WM_KEYDOWN, (IntPtr)VK_RETURN, IntPtr.Zero);
+                await Task.Delay(10);
+                PostMessage(button, WM_KEYUP, (IntPtr)VK_RETURN, IntPtr.Zero);
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine(ex.Message);
+            }
         }
 
         private IEnumerable<IntPtr> FindWindow()
