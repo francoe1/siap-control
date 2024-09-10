@@ -1,0 +1,31 @@
+name: Build .NET Framework 4.8 Project
+
+on:
+  pull_request:
+    branches:
+      - main
+
+jobs:
+  build:
+    runs-on: windows-latest
+
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@v3
+
+    - name: Setup .NET Framework 4.8
+      uses: actions/setup-dotnet@v3
+      with:
+        dotnet-version: '4.8.x'
+      
+    - name: Restore NuGet packages
+      run: nuget restore YourSolution.sln
+
+    - name: Build solution
+      run: msbuild SiapControl.sln /p:Configuration=Release
+
+    - name: Run tests
+      run: |
+        # Replace with your test command if applicable
+        # Example: vstest.console.exe path\to\your\tests.dll
+        echo "No tests configured."
