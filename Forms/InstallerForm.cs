@@ -5,6 +5,8 @@ using System;
 using System.Collections.Generic;
 using System.Diagnostics;
 using System.IO;
+using System.Linq;
+using System.Threading.Tasks;
 using System.Windows.Forms;
 
 namespace SiapControl.Forms
@@ -54,33 +56,46 @@ namespace SiapControl.Forms
                 users.Add(user);
             }
 
-            int count = 0;
-            foreach (UserModel user in users)
+            for (int i = 0; i < users.Count; i++)
             {
-                count++;
+                UserModel user = users[i];
                 toolStripStatusLabel1.Text = $"{user.User} | Iniciando";
                 File.WriteAllText(AFIP_PATH, user.Path);
                 toolStripStatusLabel1.Text = $"{user.User} | Backup";
                 _setup.CreateBackup(user.Path);
                 toolStripStatusLabel1.Text = $"{user.User} | Instalando";
-                if (await _setup.RunInstallerAsync(user.Path))
+
+                var title = _setup.Parameters.First(x => x.Name.Equals("Title")).Value;
+
+
+                var setupAutoIntaller = new SetupAutoInstaller(title, _setup.Path);
+                if (await setupAutoIntaller.InstallAsync())
                 {
                     string file = $@"{user.Path}\{_setup.AppName}\{_setup.AppName}.exe";
                     if (File.Exists(file))
                     {
                         FileVersionInfo info = FileVersionInfo.GetVersionInfo(file);
 
-                        Database.UpdateRegisters.Insert(new UpdateRegisterModel
+                        var module = Database.UserModules.Find(x => x.UserId == user.Id && x.AppName == info.ProductVersion).FirstOrDefault();
+
+                        if (module == null)
                         {
-                            AppName = info.ProductName,
-                            AppVersion = info.ProductVersion,
-                            UserId = user.Id,
-                            Date = DateTime.Now,
-                        });
+                            module.UserId = user.Id;
+                            module.AppVersion = info.ProductVersion;
+                            module.AppName = info.ProductName;
+                            module.LastUpdate = DateTime.Now; 
+                            Database.UserModules.Insert (module);
+                        }
+                        else
+                        {
+                            module.AppVersion = info.ProductVersion;
+                            module.LastUpdate = DateTime.Now;
+                            Database.UserModules.Update(module);
+                        }
                     }
                 }
 
-                toolStripProgressBar1.Value = (int)(count / (float)users.Count * 100);
+                toolStripProgressBar1.Value = (int)(i / (float)users.Count * 100);
                 ControlForm.UpdateModules(user.Id, user.Path);
             }
 

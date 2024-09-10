@@ -20,17 +20,20 @@ namespace SiapControl.Common
         private string[] _params { get; set; }
         private string _lstContent { get; set; }
 
+        public string Path => _path;
+
         public SetupReader(string path)
         {
             _path = path;
             _pathLST = $"{_path.ToLower().Replace(".exe", ".lst")}";
         }
 
+
         public bool Open()
         {
             try
             {
-                if (Path.GetExtension(_path).ToLower().Equals("exe"))
+                if (System.IO.Path.GetExtension(_path).ToLower().Equals("exe"))
                 {
                     MessageBox.Show("El archivo debe ser un ejecutable", "Error");
                     return false;
@@ -119,7 +122,7 @@ namespace SiapControl.Common
             File.WriteAllText(_pathLST, _lstContent);
         }
 
-        private IEnumerable<Parameter> Parameters
+        public IEnumerable<Parameter> Parameters
         {
             get
             {

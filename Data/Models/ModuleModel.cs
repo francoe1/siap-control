@@ -1,4 +1,6 @@
-﻿namespace SiapControl.Data.Models
+﻿using System;
+
+namespace SiapControl.Data.Models
 {
     public class ModuleModel
     {
@@ -6,5 +8,6 @@
         public int UserId { get; set; }
         public string AppName { get; set; }
         public string AppVersion { get; set; }
+        public DateTime LastUpdate { get; set; }    
     }
 }

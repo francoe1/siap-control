@@ -29,15 +29,14 @@
         private void InitializeComponent()
         {
             this.dt1 = new System.Windows.Forms.DataGridView();
+            this.dt1_id = new System.Windows.Forms.DataGridViewTextBoxColumn();
+            this.dt1_user_name = new System.Windows.Forms.DataGridViewTextBoxColumn();
+            this.dt1_siap_path = new System.Windows.Forms.DataGridViewTextBoxColumn();
             this.m_btn_addUser = new System.Windows.Forms.Button();
             this.m_btn_update = new System.Windows.Forms.Button();
-            this.m_btn_history = new System.Windows.Forms.Button();
             this.groupBox1 = new System.Windows.Forms.GroupBox();
             this.m_btn_modules = new System.Windows.Forms.Button();
             this.groupBox2 = new System.Windows.Forms.GroupBox();
-            this.dt1_siap_path = new System.Windows.Forms.DataGridViewTextBoxColumn();
-            this.dt1_user_name = new System.Windows.Forms.DataGridViewTextBoxColumn();
-            this.dt1_id = new System.Windows.Forms.DataGridViewTextBoxColumn();
             ((System.ComponentModel.ISupportInitialize)(this.dt1)).BeginInit();
             this.groupBox1.SuspendLayout();
             this.groupBox2.SuspendLayout();
@@ -60,6 +59,28 @@
             this.dt1.Size = new System.Drawing.Size(770, 350);
             this.dt1.TabIndex = 0;
             // 
+            // dt1_id
+            // 
+            this.dt1_id.HeaderText = "ID";
+            this.dt1_id.Name = "dt1_id";
+            this.dt1_id.ReadOnly = true;
+            this.dt1_id.Visible = false;
+            // 
+            // dt1_user_name
+            // 
+            this.dt1_user_name.AutoSizeMode = System.Windows.Forms.DataGridViewAutoSizeColumnMode.AllCells;
+            this.dt1_user_name.HeaderText = "Usuario";
+            this.dt1_user_name.Name = "dt1_user_name";
+            this.dt1_user_name.ReadOnly = true;
+            this.dt1_user_name.Width = 68;
+            // 
+            // dt1_siap_path
+            // 
+            this.dt1_siap_path.AutoSizeMode = System.Windows.Forms.DataGridViewAutoSizeColumnMode.Fill;
+            this.dt1_siap_path.HeaderText = "Ruta";
+            this.dt1_siap_path.Name = "dt1_siap_path";
+            this.dt1_siap_path.ReadOnly = true;
+            // 
             // m_btn_addUser
             // 
             this.m_btn_addUser.Location = new System.Drawing.Point(6, 19);
@@ -80,21 +101,10 @@
             this.m_btn_update.UseVisualStyleBackColor = true;
             this.m_btn_update.Click += new System.EventHandler(this.m_btn_update_Click);
             // 
-            // m_btn_history
-            // 
-            this.m_btn_history.Location = new System.Drawing.Point(168, 19);
-            this.m_btn_history.Name = "m_btn_history";
-            this.m_btn_history.Size = new System.Drawing.Size(75, 23);
-            this.m_btn_history.TabIndex = 4;
-            this.m_btn_history.Text = "Historial";
-            this.m_btn_history.UseVisualStyleBackColor = true;
-            this.m_btn_history.Click += new System.EventHandler(this.m_btn_history_Click);
-            // 
             // groupBox1
             // 
             this.groupBox1.Controls.Add(this.m_btn_modules);
             this.groupBox1.Controls.Add(this.m_btn_addUser);
-            this.groupBox1.Controls.Add(this.m_btn_history);
             this.groupBox1.Controls.Add(this.m_btn_update);
             this.groupBox1.Location = new System.Drawing.Point(12, 12);
             this.groupBox1.Name = "groupBox1";
@@ -106,7 +116,7 @@
             // m_btn_modules
             // 
             this.m_btn_modules.Enabled = false;
-            this.m_btn_modules.Location = new System.Drawing.Point(249, 19);
+            this.m_btn_modules.Location = new System.Drawing.Point(168, 19);
             this.m_btn_modules.Name = "m_btn_modules";
             this.m_btn_modules.Size = new System.Drawing.Size(75, 23);
             this.m_btn_modules.TabIndex = 5;
@@ -123,28 +133,6 @@
             this.groupBox2.TabIndex = 6;
             this.groupBox2.TabStop = false;
             this.groupBox2.Text = "Instalaciones";
-            // 
-            // dt1_siap_path
-            // 
-            this.dt1_siap_path.AutoSizeMode = System.Windows.Forms.DataGridViewAutoSizeColumnMode.Fill;
-            this.dt1_siap_path.HeaderText = "Ruta";
-            this.dt1_siap_path.Name = "dt1_siap_path";
-            this.dt1_siap_path.ReadOnly = true;
-            // 
-            // dt1_user_name
-            // 
-            this.dt1_user_name.AutoSizeMode = System.Windows.Forms.DataGridViewAutoSizeColumnMode.AllCells;
-            this.dt1_user_name.HeaderText = "Usuario";
-            this.dt1_user_name.Name = "dt1_user_name";
-            this.dt1_user_name.ReadOnly = true;
-            this.dt1_user_name.Width = 68;
-            // 
-            // dt1_id
-            // 
-            this.dt1_id.HeaderText = "ID";
-            this.dt1_id.Name = "dt1_id";
-            this.dt1_id.ReadOnly = true;
-            this.dt1_id.Visible = false;
             // 
             // ControlForm
             // 
@@ -170,7 +158,6 @@
         private System.Windows.Forms.DataGridView dt1;
         private System.Windows.Forms.Button m_btn_addUser;
         private System.Windows.Forms.Button m_btn_update;
-        private System.Windows.Forms.Button m_btn_history;
         private System.Windows.Forms.GroupBox groupBox1;
         private System.Windows.Forms.GroupBox groupBox2;
         private System.Windows.Forms.Button m_btn_modules;

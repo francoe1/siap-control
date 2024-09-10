@@ -54,7 +54,6 @@ namespace SiapControl.Forms
                 user.User = form.UserName;
                 user.Path = form.SiapPath;
                 Database.Users.Update(user);
-                Database.ExportToJsonAsync();
             }
         }
 
@@ -62,7 +61,6 @@ namespace SiapControl.Forms
         {
             int id = (int)e.Row.Cells[0].Value;
             Database.Users.Delete(id);
-            Database.ExportToJsonAsync();
         }
 
         private async void LoadDataAsync()
@@ -71,7 +69,6 @@ namespace SiapControl.Forms
             Text += " (Cargando ...)";
             Enabled = false;
             await Database.ConnectAsync();
-            await Database.ExportToJsonAsync();
             UpdateUserTable();
             Text = title;
             Enabled = true;
@@ -110,8 +107,6 @@ namespace SiapControl.Forms
                         Database.UserModules.Insert(module);
                     }
                 }
-
-                Database.ExportToJsonAsync();
             }
             catch (Exception ex)
             {
@@ -130,7 +125,6 @@ namespace SiapControl.Forms
                     Path = form.SiapPath,
                 });
                 UpdateUserTable();
-                Database.ExportToJsonAsync();
             }
         }
 
@@ -150,12 +144,6 @@ namespace SiapControl.Forms
             if (!setup.Open()) return;
 
             InstallerForm form = new InstallerForm(setup);
-            form.ShowDialog();
-        }
-
-        private void m_btn_history_Click(object sender, EventArgs e)
-        {
-            HistoryForm form = new HistoryForm();
             form.ShowDialog();
         }
 
