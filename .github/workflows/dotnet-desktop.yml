@@ -3,7 +3,7 @@ name: Build .NET Framework 4.8 Project
 on:
   pull_request:
     branches:
-      - main
+      - master
   workflow_dispatch:
 
 jobs:
