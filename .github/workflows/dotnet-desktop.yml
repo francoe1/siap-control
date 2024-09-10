@@ -1,10 +1,10 @@
 name: Build .NET Framework 4.8 Project
 
 on:
-  workflow_dispatch:
   pull_request:
     branches:
-      - master
+      - main
+  workflow_dispatch:
 
 jobs:
   build:
@@ -14,19 +14,14 @@ jobs:
     - name: Checkout code
       uses: actions/checkout@v3
 
-    - name: Setup .NET Framework 4.8
-      uses: actions/setup-dotnet@v3
-      with:
-        dotnet-version: '4.8.x'
-      
-    - name: Restore NuGet packages
-      run: nuget restore YourSolution.sln
+    - name: Set up Docker
+      uses: docker/setup-buildx-action@v2
 
-    - name: Build solution
-      run: msbuild SiapControl.sln /p:Configuration=Release
-
-    - name: Run tests
+    - name: Build Docker image
       run: |
-        # Replace with your test command if applicable
-        # Example: vstest.console.exe path\to\your\tests.dll
-        echo "No tests configured."
+        docker build -t my-dotnet-framework-image -f Dockerfile .
+
+    - name: Run build in Docker
+      run: |
+        docker run --rm my-dotnet-framework-image nuget restore SiapControl.sln
+        docker run --rm my-dotnet-framework-image msbuild SiapControl.sln /p:Configuration=Release
