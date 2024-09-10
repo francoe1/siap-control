@@ -1,9 +1,10 @@
 name: Build .NET Framework 4.8 Project
 
 on:
+  workflow_dispatch:
   pull_request:
     branches:
-      - main
+      - master
 
 jobs:
   build:
