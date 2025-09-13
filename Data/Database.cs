@@ -16,23 +16,17 @@ namespace SiapControl.Data
             string path = Path.Combine(AppDomain.CurrentDomain.BaseDirectory, "program.db");
             Directory.CreateDirectory(Path.GetDirectoryName(path)!);
 
-            async Task<SqliteConnection> OpenAndInitAsync()
+            static void InitializeSchema(SqliteConnection conn)
             {
-                var conn = new SqliteConnection($"Data Source={path};Pooling=False");
-                try
-                {
-                    await conn.OpenAsync();
-
-                    using (var cmd = conn.CreateCommand())
-                    {
-                        cmd.CommandText = @"CREATE TABLE IF NOT EXISTS Users (
+                using var cmd = conn.CreateCommand();
+                cmd.CommandText = @"CREATE TABLE IF NOT EXISTS Users (
                                             Id INTEGER PRIMARY KEY AUTOINCREMENT,
                                             User TEXT NOT NULL,
                                             Path TEXT NOT NULL
                                         );";
-                        cmd.ExecuteNonQuery();
+                cmd.ExecuteNonQuery();
 
-                        cmd.CommandText = @"CREATE TABLE IF NOT EXISTS Modules (
+                cmd.CommandText = @"CREATE TABLE IF NOT EXISTS Modules (
                                             Id INTEGER PRIMARY KEY AUTOINCREMENT,
                                             UserId INTEGER NOT NULL,
                                             AppName TEXT,
@@ -40,9 +34,16 @@ namespace SiapControl.Data
                                             LastUpdate TEXT,
                                             FOREIGN KEY(UserId) REFERENCES Users(Id)
                                         );";
-                        cmd.ExecuteNonQuery();
-                    }
+                cmd.ExecuteNonQuery();
+            }
 
+            async Task<SqliteConnection> OpenAndInitAsync()
+            {
+                var conn = new SqliteConnection($"Data Source={path};Pooling=False");
+                try
+                {
+                    await conn.OpenAsync();
+                    InitializeSchema(conn);
                     return conn;
                 }
                 catch

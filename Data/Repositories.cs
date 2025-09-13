@@ -15,6 +15,16 @@ namespace SiapControl.Data
             _connection = connection;
         }
 
+        private static UserModel ReadUser(SqliteDataReader reader)
+        {
+            return new UserModel
+            {
+                Id = reader.GetInt32(0),
+                User = reader.GetString(1),
+                Path = reader.GetString(2)
+            };
+        }
+
         public IEnumerable<UserModel> FindAll()
         {
             using var cmd = _connection.CreateCommand();
@@ -22,16 +32,11 @@ namespace SiapControl.Data
             using var reader = cmd.ExecuteReader();
             while (reader.Read())
             {
-                yield return new UserModel
-                {
-                    Id = reader.GetInt32(0),
-                    User = reader.GetString(1),
-                    Path = reader.GetString(2)
-                };
+                yield return ReadUser(reader);
             }
         }
 
-        public UserModel FindById(int id)
+        public UserModel? FindById(int id)
         {
             using var cmd = _connection.CreateCommand();
             cmd.CommandText = "SELECT Id, User, Path FROM Users WHERE Id=@id";
@@ -39,12 +44,7 @@ namespace SiapControl.Data
             using var reader = cmd.ExecuteReader();
             if (reader.Read())
             {
-                return new UserModel
-                {
-                    Id = reader.GetInt32(0),
-                    User = reader.GetString(1),
-                    Path = reader.GetString(2)
-                };
+                return ReadUser(reader);
             }
             return null;
         }
