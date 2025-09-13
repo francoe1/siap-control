@@ -108,6 +108,7 @@
       <DependentUpon>ControlForm.cs</DependentUpon>
     </Compile>
     <Compile Include="Data\Database.cs" />
+    <Compile Include="Data\Repositories.cs" />
     <Compile Include="Forms\InstallerForm.cs">
       <SubType>Form</SubType>
     </Compile>
