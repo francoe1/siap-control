@@ -163,8 +163,8 @@
     <None Include="app.config" />
   </ItemGroup>
   <ItemGroup>
-    <PackageReference Include="LiteDB">
-      <Version>5.0.17</Version>
+    <PackageReference Include="Microsoft.Data.Sqlite">
+      <Version>7.0.0</Version>
     </PackageReference>
   </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />

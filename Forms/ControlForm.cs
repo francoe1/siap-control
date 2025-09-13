@@ -97,7 +97,7 @@ namespace SiapControl.Forms
             try
             {
                 SiapReader reader = new SiapReader(path);
-                Database.UserModules.DeleteMany(x => x.UserId == userId);
+                Database.UserModules.DeleteByUser(userId);
 
                 if (reader.Modules != null)
                 {

@@ -70,7 +70,7 @@ namespace SiapControl.Forms
                     {
                         FileVersionInfo info = FileVersionInfo.GetVersionInfo(file);
 
-                        var module = Database.UserModules.Find(x => x.UserId == user.Id && x.AppName == info.ProductVersion).FirstOrDefault();
+                        var module = Database.UserModules.FindByUserAndAppName(user.Id, info.ProductName);
 
                         if (module == null)
                         {
