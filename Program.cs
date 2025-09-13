@@ -26,7 +26,12 @@ namespace SiapControl
             }
             catch (Exception ex)
             {
-                MessageBox.Show($"{ex.Message} ---> \n{ex.StackTrace}\n{ex.Source}\n{ex.TargetSite}", "Error");
+                Exception inner = ex;
+                while (inner.InnerException != null)
+                {
+                    inner = inner.InnerException;
+                }
+                MessageBox.Show($"{inner.Message} ---> \n{inner.StackTrace}\n{inner.Source}\n{inner.TargetSite}", "Error");
             }
         }
 

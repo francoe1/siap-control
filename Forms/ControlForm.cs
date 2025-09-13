@@ -68,10 +68,25 @@ namespace SiapControl.Forms
             string title = Text;
             Text += " (Cargando ...)";
             Enabled = false;
-            await Database.ConnectAsync();
-            UpdateUserTable();
-            Text = title;
-            Enabled = true;
+            try
+            {
+                await Database.ConnectAsync();
+                UpdateUserTable();
+            }
+            catch (Exception ex)
+            {
+                Exception inner = ex;
+                while (inner.InnerException != null)
+                {
+                    inner = inner.InnerException;
+                }
+                MessageBox.Show($"Error inicializando la base de datos: {inner.Message}", "Error");
+            }
+            finally
+            {
+                Text = title;
+                Enabled = true;
+            }
         }
 
         private void UpdateUserTable()
