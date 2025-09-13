@@ -18,7 +18,7 @@ namespace SiapControl.Data
 
             async Task<SqliteConnection> OpenAndInitAsync()
             {
-                var conn = new SqliteConnection($"Data Source={path}");
+                var conn = new SqliteConnection($"Data Source={path};Pooling=False");
                 try
                 {
                     await conn.OpenAsync();
@@ -58,10 +58,22 @@ namespace SiapControl.Data
             }
             catch (SqliteException ex) when (ex.SqliteErrorCode == 26 || ex.SqliteErrorCode == 14)
             {
+                // clear any pooled connections so the file handle is released
+                SqliteConnection.ClearAllPools();
+
                 if (File.Exists(path))
                 {
-                    File.Delete(path);
+                    try
+                    {
+                        File.Delete(path);
+                    }
+                    catch (IOException)
+                    {
+                        // if another process is using the file, surface a clearer message
+                        throw new IOException($"Unable to rebuild database because '{path}' is in use by another process.");
+                    }
                 }
+
                 _connection = await OpenAndInitAsync();
             }
 
