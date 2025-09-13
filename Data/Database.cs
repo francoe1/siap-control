@@ -17,7 +17,17 @@ namespace SiapControl.Data
             {
                 string path = Path.Combine(AppDomain.CurrentDomain.BaseDirectory, "program.db");
                 _connection = new SqliteConnection($"Data Source={path}");
-                _connection.Open();
+                try
+                {
+                    _connection.Open();
+                }
+                catch (SqliteException ex) when (ex.SqliteErrorCode == 26)
+                {
+                    _connection.Dispose();
+                    File.Delete(path);
+                    _connection = new SqliteConnection($"Data Source={path}");
+                    _connection.Open();
+                }
 
                 using (var cmd = _connection.CreateCommand())
                 {
