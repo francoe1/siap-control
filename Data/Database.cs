@@ -16,6 +16,12 @@ namespace SiapControl.Data
             return Task.Run(() =>
             {
                 string path = Path.Combine(AppDomain.CurrentDomain.BaseDirectory, "program.db");
+
+                if (!File.Exists(path))
+                {
+                    using (File.Create(path)) { }
+                }
+
                 _connection = new SqliteConnection($"Data Source={path}");
                 try
                 {
@@ -25,6 +31,7 @@ namespace SiapControl.Data
                 {
                     _connection.Dispose();
                     File.Delete(path);
+                    using (File.Create(path)) { }
                     _connection = new SqliteConnection($"Data Source={path}");
                     _connection.Open();
                 }
