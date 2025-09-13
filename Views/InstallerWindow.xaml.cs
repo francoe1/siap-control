@@ -1,4 +1,4 @@
-﻿using SiapControl.Common;
+using SiapControl.Common;
 using SiapControl.Data;
 using SiapControl.Data.Models;
 using System;
@@ -7,53 +7,69 @@ using System.Diagnostics;
 using System.IO;
 using System.Linq;
 using System.Threading.Tasks;
-using System.Windows.Forms;
+using System.Windows;
+using System.Collections.ObjectModel;
 
-namespace SiapControl.Forms
+namespace SiapControl.Views
 {
-    public partial class InstallerForm : Form
+    public partial class InstallerWindow : Window
     {
-        private const string AFIP_PATH = @"C:\Windows\afipPath.sys";
-        private SetupReader _setup { get; set; }
+        private const string AFIP_PATH = @"C:\\Windows\\afipPath.sys";
+        private readonly SetupReader _setup;
+        private readonly ObservableCollection<InstallUser> _rows = new();
 
-        public InstallerForm(SetupReader setup)
+        private class InstallUser
+        {
+            public int Id { get; set; }
+            public string User { get; set; } = string.Empty;
+            public string Version { get; set; } = string.Empty;
+            public bool Active { get; set; } = true;
+        }
+
+        public InstallerWindow(SetupReader setup)
         {
             _setup = setup;
             InitializeComponent();
-            label1.Text = _setup.AppName;
-            label2.Text = _setup.AppVersion;
+            TitleText.Text = _setup.AppName;
+            VersionText.Text = _setup.AppVersion;
+            UsersGrid.ItemsSource = _rows;
             LoadDataGrid();
+            StartButton.Click += StartAsync;
         }
 
         private void LoadDataGrid()
         {
-            dg_1.Rows.Clear();
+            _rows.Clear();
             foreach (UserModel info in Database.Users.FindAll())
             {
                 string file = $@"{info.Path}\{_setup.AppName}\{_setup.AppName}.exe";
-                FileVersionInfo version = null;
+                FileVersionInfo? version = null;
                 if (File.Exists(file)) version = FileVersionInfo.GetVersionInfo(file);
-                dg_1.Rows.Add(info.Id, info.User, version is null ? "Sin versión previa" : version.ProductVersion, true);
+                _rows.Add(new InstallUser
+                {
+                    Id = info.Id,
+                    User = info.User,
+                    Version = version is null ? "Sin versión previa" : version.ProductVersion,
+                    Active = true
+                });
             }
         }
 
-        private async void m_btn_start_ClickAsync(object sender, EventArgs e)
+        private async void StartAsync(object? sender, RoutedEventArgs e)
         {
-            m_btn_start.Enabled = false;
-            List<UserModel> users = new List<UserModel>();
+            StartButton.IsEnabled = false;
+            List<UserModel> users = new();
 
-            foreach (DataGridViewRow row in dg_1.Rows)
+            foreach (var row in _rows.Where(r => r.Active))
             {
-                if (row.Cells["active"].Value is false) continue;
-
-                int id = (int)row.Cells[0].Value;
-                UserModel user = Database.Users.FindById(id);
-                if (user is null) continue;
-                users.Add(user);
+                UserModel? user = Database.Users.FindById(row.Id);
+                if (user != null)
+                {
+                    users.Add(user);
+                }
             }
 
             int installed = 0;
-
             for (int i = 0; i < users.Count; i++)
             {
                 UserModel user = users[i];
@@ -94,15 +110,14 @@ namespace SiapControl.Forms
                 }
             }
 
-            m_btn_start.Enabled = true;
+            StartButton.IsEnabled = true;
 
             if (users.Count == installed)
             {
                 Close();
-
                 MessageBox.Show($"Se instalaron {installed} de {users.Count}", "Instalación Finalizada");
             }
-
         }
     }
 }
+

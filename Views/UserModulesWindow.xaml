@@ -1,0 +1,19 @@
+<Window x:Class="SiapControl.Views.UserModulesWindow"
+        xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        Title="Módulos" Height="300" Width="400">
+    <DockPanel Margin="10">
+        <StackPanel Orientation="Horizontal" DockPanel.Dock="Top" Margin="0,0,0,5">
+            <Label Content="Buscar:" VerticalAlignment="Center"/>
+            <TextBox x:Name="SearchText" Width="200" Margin="5,0,0,0"/>
+            <Button x:Name="ReindexButton" Content="Reindex" Margin="5,0,0,0" Width="75"/>
+        </StackPanel>
+        <DataGrid x:Name="ModulesGrid" AutoGenerateColumns="False">
+            <DataGrid.Columns>
+                <DataGridTextColumn Header="Nombre" Binding="{Binding AppName}" Width="*" />
+                <DataGridTextColumn Header="Versión" Binding="{Binding AppVersion}" Width="*" />
+            </DataGrid.Columns>
+        </DataGrid>
+    </DockPanel>
+</Window>
+
