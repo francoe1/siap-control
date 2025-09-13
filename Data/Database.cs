@@ -11,54 +11,49 @@ namespace SiapControl.Data
         public static UserRepository Users { get; private set; }
         public static ModuleRepository UserModules { get; private set; }
 
-        public static Task ConnectAsync()
+        public static async Task ConnectAsync()
         {
-            return Task.Run(() =>
+            string path = Path.Combine(AppDomain.CurrentDomain.BaseDirectory, "program.db");
+            Directory.CreateDirectory(Path.GetDirectoryName(path)!);
+
+            _connection = new SqliteConnection($"Data Source={path}");
+            try
             {
-                string path = Path.Combine(AppDomain.CurrentDomain.BaseDirectory, "program.db");
-
-                if (!File.Exists(path))
+                await _connection.OpenAsync();
+            }
+            catch (SqliteException ex) when (ex.SqliteErrorCode == 26 || ex.SqliteErrorCode == 14)
+            {
+                _connection.Dispose();
+                if (File.Exists(path))
                 {
-                    using (File.Create(path)) { }
-                }
-
-                _connection = new SqliteConnection($"Data Source={path}");
-                try
-                {
-                    _connection.Open();
-                }
-                catch (SqliteException ex) when (ex.SqliteErrorCode == 26)
-                {
-                    _connection.Dispose();
                     File.Delete(path);
-                    using (File.Create(path)) { }
-                    _connection = new SqliteConnection($"Data Source={path}");
-                    _connection.Open();
                 }
+                _connection = new SqliteConnection($"Data Source={path}");
+                await _connection.OpenAsync();
+            }
 
-                using (var cmd = _connection.CreateCommand())
-                {
-                    cmd.CommandText = @"CREATE TABLE IF NOT EXISTS Users (
-                                            Id INTEGER PRIMARY KEY AUTOINCREMENT,
-                                            User TEXT NOT NULL,
-                                            Path TEXT NOT NULL
-                                        );";
-                    cmd.ExecuteNonQuery();
+            using (var cmd = _connection.CreateCommand())
+            {
+                cmd.CommandText = @"CREATE TABLE IF NOT EXISTS Users (
+                                        Id INTEGER PRIMARY KEY AUTOINCREMENT,
+                                        User TEXT NOT NULL,
+                                        Path TEXT NOT NULL
+                                    );";
+                cmd.ExecuteNonQuery();
 
-                    cmd.CommandText = @"CREATE TABLE IF NOT EXISTS Modules (
-                                            Id INTEGER PRIMARY KEY AUTOINCREMENT,
-                                            UserId INTEGER NOT NULL,
-                                            AppName TEXT,
-                                            AppVersion TEXT,
-                                            LastUpdate TEXT,
-                                            FOREIGN KEY(UserId) REFERENCES Users(Id)
-                                        );";
-                    cmd.ExecuteNonQuery();
-                }
+                cmd.CommandText = @"CREATE TABLE IF NOT EXISTS Modules (
+                                        Id INTEGER PRIMARY KEY AUTOINCREMENT,
+                                        UserId INTEGER NOT NULL,
+                                        AppName TEXT,
+                                        AppVersion TEXT,
+                                        LastUpdate TEXT,
+                                        FOREIGN KEY(UserId) REFERENCES Users(Id)
+                                    );";
+                cmd.ExecuteNonQuery();
+            }
 
-                Users = new UserRepository(_connection);
-                UserModules = new ModuleRepository(_connection);
-            });
+            Users = new UserRepository(_connection);
+            UserModules = new ModuleRepository(_connection);
         }
     }
 }

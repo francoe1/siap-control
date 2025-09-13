@@ -73,15 +73,6 @@ namespace SiapControl.Forms
                 await Database.ConnectAsync();
                 UpdateUserTable();
             }
-            catch (Exception ex)
-            {
-                Exception inner = ex;
-                while (inner.InnerException != null)
-                {
-                    inner = inner.InnerException;
-                }
-                MessageBox.Show($"Error inicializando la base de datos: {inner.Message}", "Error");
-            }
             finally
             {
                 Text = title;
