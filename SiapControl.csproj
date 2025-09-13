@@ -3,9 +3,15 @@
     <TargetFramework>netcoreapp3.1</TargetFramework>
     <OutputType>WinExe</OutputType>
     <UseWindowsForms>true</UseWindowsForms>
-    <GenerateAssemblyInfo>false</GenerateAssemblyInfo>
-    <ImplicitUsings>enable</ImplicitUsings>
     <Nullable>enable</Nullable>
+    <LangVersion>8.0</LangVersion>
+    <Company>Franco Rosatto</Company>
+    <Product>SiapControl</Product>
+    <Description>Administrador de multiples instancias de SIAP.</Description>
+    <Copyright>Copyright ©  2023</Copyright>
+    <AssemblyVersion>1.0.4.1</AssemblyVersion>
+    <FileVersion>1.0.4.1</FileVersion>
+    <NeutralLanguage>es-AR</NeutralLanguage>
   </PropertyGroup>
   <ItemGroup>
     <PackageReference Include="Microsoft.Data.Sqlite" Version="7.0.0" />
