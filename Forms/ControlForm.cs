@@ -68,10 +68,16 @@ namespace SiapControl.Forms
             string title = Text;
             Text += " (Cargando ...)";
             Enabled = false;
-            await Database.ConnectAsync();
-            UpdateUserTable();
-            Text = title;
-            Enabled = true;
+            try
+            {
+                await Database.ConnectAsync();
+                UpdateUserTable();
+            }
+            finally
+            {
+                Text = title;
+                Enabled = true;
+            }
         }
 
         private void UpdateUserTable()
@@ -97,7 +103,7 @@ namespace SiapControl.Forms
             try
             {
                 SiapReader reader = new SiapReader(path);
-                Database.UserModules.DeleteMany(x => x.UserId == userId);
+                Database.UserModules.DeleteByUser(userId);
 
                 if (reader.Modules != null)
                 {

@@ -22,10 +22,7 @@ namespace SiapControl.Forms
         {
             dg1.Rows.Clear();
 
-            foreach (ModuleModel module in Database.UserModules.Find(
-                x => x.UserId == _user.Id &&
-                x.AppName.ToLower().Contains(m_txt_search.Text.ToLower())
-                ))
+            foreach (ModuleModel module in Database.UserModules.FindByUserAndName(_user.Id, m_txt_search.Text))
             {
                 string file = _user.Path + "\\" + module.AppName + ".exe";
                 if (File.Exists(file))
