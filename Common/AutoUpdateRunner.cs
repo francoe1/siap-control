@@ -18,6 +18,14 @@ namespace SiapControl.Common
         public string Summary => $"Modulos revisados: {CheckedModules}. Actualizados: {UpdatedModules}. Omitidos: {SkippedModules}.";
     }
 
+    public sealed class AutoUpdateProgress
+    {
+        public int ModuleId { get; set; }
+        public int UserId { get; set; }
+        public string Message { get; set; } = string.Empty;
+        public int Percentage { get; set; }
+    }
+
     public enum AutoUpdatePlanStatus
     {
         UpToDate,
@@ -171,6 +179,11 @@ namespace SiapControl.Common
 
         public async Task<AutoUpdateRunResult> RunPlanAsync(IEnumerable<AutoUpdatePlanItem> items)
         {
+            return await RunPlanAsync(items, null);
+        }
+
+        public async Task<AutoUpdateRunResult> RunPlanAsync(IEnumerable<AutoUpdatePlanItem> items, IProgress<AutoUpdateProgress>? progress)
+        {
             var result = new AutoUpdateRunResult();
             AutoUpdatePlanItem[] pending = items.Where(item => item.CanUpdate).ToArray();
             result.CheckedModules = pending.Length;
@@ -178,24 +191,68 @@ namespace SiapControl.Common
             foreach (IGrouping<string, AutoUpdatePlanItem> group in pending.GroupBy(item => item.Package!.DownloadUri.ToString()))
             {
                 AfipApplicationPackage package = group.First().Package!;
-                SetupReader? setup = await _packageService.DownloadAndPrepareAsync(package);
+                AutoUpdatePlanItem[] groupItems = group.ToArray();
+                var packageProgress = new Progress<AfipPackageProgress>(packageStatus =>
+                {
+                    foreach (AutoUpdatePlanItem item in groupItems)
+                    {
+                        progress?.Report(new AutoUpdateProgress
+                        {
+                            ModuleId = item.Module.Id,
+                            UserId = item.User.Id,
+                            Message = packageStatus.Message,
+                            Percentage = Math.Min(60, packageStatus.Percentage * 60 / 100)
+                        });
+                    }
+                });
+
+                SetupReader? setup = await _packageService.DownloadAndPrepareAsync(package, packageProgress);
                 if (setup == null)
                 {
-                    foreach (AutoUpdatePlanItem item in group)
+                    foreach (AutoUpdatePlanItem item in groupItems)
                     {
+                        progress?.Report(new AutoUpdateProgress
+                        {
+                            ModuleId = item.Module.Id,
+                            UserId = item.User.Id,
+                            Message = "No se pudo preparar el instalador.",
+                            Percentage = 0
+                        });
                         Skip(result, $"{item.Module.AppName}: no se pudo preparar el instalador.");
                     }
                     continue;
                 }
 
-                foreach (AutoUpdatePlanItem item in group)
+                foreach (AutoUpdatePlanItem item in groupItems)
                 {
+                    progress?.Report(new AutoUpdateProgress
+                    {
+                        ModuleId = item.Module.Id,
+                        UserId = item.User.Id,
+                        Message = $"Instalando en {item.User.User}...",
+                        Percentage = 70
+                    });
+
                     if (await InstallForUserAsync(setup, item.User))
                     {
+                        progress?.Report(new AutoUpdateProgress
+                        {
+                            ModuleId = item.Module.Id,
+                            UserId = item.User.Id,
+                            Message = "Actualizado.",
+                            Percentage = 100
+                        });
                         result.UpdatedModules++;
                     }
                     else
                     {
+                        progress?.Report(new AutoUpdateProgress
+                        {
+                            ModuleId = item.Module.Id,
+                            UserId = item.User.Id,
+                            Message = "Instalacion no finalizada.",
+                            Percentage = 0
+                        });
                         Skip(result, $"{item.Module.AppName}: instalacion no finalizada.");
                     }
                 }

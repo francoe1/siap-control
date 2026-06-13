@@ -28,6 +28,7 @@ namespace SiapControl.Views
         {
             private string _version = "Pendiente";
             private string _status = "Pendiente";
+            private int _progress;
             private bool _active = true;
 
             public event PropertyChangedEventHandler? PropertyChanged;
@@ -46,6 +47,24 @@ namespace SiapControl.Views
                 get => _status;
                 set => SetField(ref _status, value);
             }
+
+            public int Progress
+            {
+                get => _progress;
+                set
+                {
+                    if (_progress == value)
+                    {
+                        return;
+                    }
+
+                    _progress = value;
+                    PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(nameof(Progress)));
+                    PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(nameof(ProgressText)));
+                }
+            }
+
+            public string ProgressText => Progress <= 0 ? string.Empty : Progress + "%";
 
             public bool Active
             {
@@ -128,12 +147,14 @@ namespace SiapControl.Views
                     {
                         Id = user.Id,
                         User = user.User,
-                        Status = "Buscando version..."
+                        Status = "Buscando version...",
+                        Progress = 5
                     };
                     _rows.Add(row);
 
                     row.Version = await Task.Run(() => GetInstalledVersion(user.Path));
                     row.Status = "Listo";
+                    row.Progress = 0;
                     SetProgress(i + 1, users.Count);
                     StatusText.Text = $"Versiones detectadas: {i + 1} de {users.Count}";
                 }
@@ -202,10 +223,12 @@ namespace SiapControl.Views
                     UserModel user = users[i].User;
                     StatusText.Text = $"Actualizando {user.User} ({i + 1} de {users.Count})...";
                     row.Status = "Preparando...";
+                    row.Progress = 5;
 
                     File.WriteAllText(AFIP_PATH, user.Path);
 
                     row.Status = "Creando backup...";
+                    row.Progress = 20;
                     await _setup.CreateBackupAsync(user.Path);
 
                     SetupReader.Parameter titleParameter = _setup.Parameters.FirstOrDefault(x => x.Name.Equals("Title", StringComparison.OrdinalIgnoreCase));
@@ -213,17 +236,21 @@ namespace SiapControl.Views
                     var setupAutoIntaller = new SetupAutoInstaller(title, _setup.Path);
 
                     row.Status = "Ejecutando instalador...";
+                    row.Progress = 55;
                     if (await setupAutoIntaller.InstallAsync())
                     {
                         row.Status = "Actualizando modulo...";
+                        row.Progress = 85;
                         await UpdateInstalledModuleAsync(user);
                         row.Version = await Task.Run(() => GetInstalledVersion(user.Path));
                         row.Status = "Actualizado";
+                        row.Progress = 100;
                         installed++;
                     }
                     else
                     {
                         row.Status = "No actualizado";
+                        row.Progress = 0;
                     }
 
                     SetProgress(i + 1, users.Count);

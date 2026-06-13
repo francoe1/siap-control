@@ -32,7 +32,7 @@ namespace SiapControl.Common
 
             AfipModuleMatch[] candidates = catalog
                 .Select(item => new AfipModuleMatch { CatalogItem = item, Confidence = moduleNames.Max(moduleName => Score(moduleName, item)) })
-                .Where(match => match.Confidence >= 0.72)
+                .Where(match => match.Confidence >= 0.88)
                 .OrderByDescending(match => match.Confidence)
                 .Take(2)
                 .ToArray();
@@ -43,7 +43,7 @@ namespace SiapControl.Common
             }
 
             AfipModuleMatch best = candidates[0];
-            best.IsSafe = best.Confidence >= 0.90 || candidates.Length == 1 || best.Confidence - candidates[1].Confidence >= 0.18;
+            best.IsSafe = best.Confidence >= 0.95 || (best.Confidence >= 0.90 && (candidates.Length == 1 || best.Confidence - candidates[1].Confidence >= 0.18));
             return best.IsSafe ? best : null;
         }
 
@@ -85,36 +85,34 @@ namespace SiapControl.Common
             string category = Normalize(item.Category);
             string combined = Normalize(item.Category + " " + item.Title + " " + item.Keywords);
 
-            if (title.Equals(moduleName, StringComparison.OrdinalIgnoreCase) || category.Equals(moduleName, StringComparison.OrdinalIgnoreCase))
+            if (title.Equals(moduleName, StringComparison.OrdinalIgnoreCase))
             {
                 return 1.0;
             }
 
-            if (ContainsWordSequence(title, moduleName) || ContainsWordSequence(category, moduleName))
-            {
-                return 0.95;
-            }
-
             if (ContainsWordSequence(combined, moduleName))
             {
-                return 0.88;
+                string[] moduleSequenceTokens = moduleName.Split(new[] { ' ' }, StringSplitOptions.RemoveEmptyEntries);
+                string[] titleSequenceTokens = title.Split(new[] { ' ' }, StringSplitOptions.RemoveEmptyEntries);
+                if (titleSequenceTokens.Length > 0 && (double)moduleSequenceTokens.Length / titleSequenceTokens.Length >= 0.80)
+                {
+                    return 0.95;
+                }
             }
 
             string[] moduleTokens = moduleName.Split(new[] { ' ' }, StringSplitOptions.RemoveEmptyEntries);
             string[] itemTokens = combined.Split(new[] { ' ' }, StringSplitOptions.RemoveEmptyEntries);
-            string[] primaryItemTokens = (category + " " + title).Split(new[] { ' ' }, StringSplitOptions.RemoveEmptyEntries);
             if (moduleTokens.Length == 0 || itemTokens.Length == 0)
             {
                 return 0;
             }
 
-            if (moduleTokens.Any(token => token.Length >= 3 && primaryItemTokens.Contains(token)))
-            {
-                return 0.90;
-            }
-
             int common = moduleTokens.Count(token => itemTokens.Contains(token));
-            return (double)common / moduleTokens.Length;
+            int titleCommon = moduleTokens.Count(token => title.Split(new[] { ' ' }, StringSplitOptions.RemoveEmptyEntries).Contains(token));
+            double moduleCoverage = (double)common / moduleTokens.Length;
+            double titleCoverage = title.Length == 0 ? 0 : (double)titleCommon / title.Split(new[] { ' ' }, StringSplitOptions.RemoveEmptyEntries).Length;
+            double coverage = Math.Min(moduleCoverage, titleCoverage);
+            return moduleTokens.Length >= 2 && coverage >= 0.80 ? coverage : 0;
         }
 
         private static bool ContainsWordSequence(string value, string sequence)

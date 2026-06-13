@@ -89,6 +89,8 @@ namespace SiapControl.Views
             UpdateAppContextMenuItem.Click += UpdateApp;
             AutoUpdaterMenuItem.Click += ShowAutoUpdater;
             AutoUpdaterContextMenuItem.Click += ShowAutoUpdater;
+            AfipCatalogMenuItem.Click += ShowAfipCatalog;
+            AfipCatalogContextMenuItem.Click += ShowAfipCatalog;
             ConfigureAutoUpdaterMenuItem.Click += ShowAutoUpdateSettings;
             ConfigureAutoUpdaterContextMenuItem.Click += ShowAutoUpdateSettings;
             ModulesMenuItem.Click += ShowModules;
@@ -240,6 +242,8 @@ namespace SiapControl.Views
             UpdateAppContextMenuItem.IsEnabled = isEnabled;
             AutoUpdaterMenuItem.IsEnabled = isEnabled;
             AutoUpdaterContextMenuItem.IsEnabled = isEnabled;
+            AfipCatalogMenuItem.IsEnabled = isEnabled;
+            AfipCatalogContextMenuItem.IsEnabled = isEnabled;
             ConfigureAutoUpdaterMenuItem.IsEnabled = isEnabled;
             ConfigureAutoUpdaterContextMenuItem.IsEnabled = isEnabled;
             ValidateAllMenuItem.IsEnabled = isEnabled;
@@ -543,6 +547,12 @@ namespace SiapControl.Views
         private void ShowAutoUpdater(object sender, RoutedEventArgs e)
         {
             var win = new AutoUpdaterWindow { Owner = this };
+            win.ShowDialog();
+        }
+
+        private void ShowAfipCatalog(object sender, RoutedEventArgs e)
+        {
+            var win = new AfipCatalogWindow { Owner = this };
             win.ShowDialog();
         }
 

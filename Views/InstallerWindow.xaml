@@ -55,6 +55,7 @@
                     <DataGridTextColumn Header="Usuario" Binding="{Binding User}" Width="*" IsReadOnly="True" />
                     <DataGridTextColumn Header="Version actual" Binding="{Binding Version}" Width="*" IsReadOnly="True" />
                     <DataGridTextColumn Header="Estado" Binding="{Binding Status}" Width="1.4*" IsReadOnly="True" />
+                    <DataGridTextColumn Header="Progreso" Binding="{Binding ProgressText}" Width="Auto" IsReadOnly="True" />
                     <DataGridCheckBoxColumn Header="Actualizar" Binding="{Binding Active, UpdateSourceTrigger=PropertyChanged}" Width="Auto" />
                 </DataGrid.Columns>
             </DataGrid>

@@ -45,6 +45,13 @@ namespace SiapControl.Common
             return match.Success ? match.Groups["version"].Value.Trim() : string.Empty;
         }
 
+        public static string RemoveVersionText(string value)
+        {
+            string result = Regex.Replace(value ?? string.Empty, @"\bVersi\S*n\s+\d+(?:[\.\s]\d+)*(?:\s*(?:Release|R)\s*\d+)?", " ", RegexOptions.IgnoreCase);
+            result = Regex.Replace(result, @"\b\d+(?:[\.\s]\d+)*(?:\s*(?:Release|R)\s*\d+)\b", " ", RegexOptions.IgnoreCase);
+            return Regex.Replace(result, @"\s+", " ").Trim();
+        }
+
         private static int[] ParseNumbers(string value)
         {
             return Regex.Matches(value ?? string.Empty, @"\d+")

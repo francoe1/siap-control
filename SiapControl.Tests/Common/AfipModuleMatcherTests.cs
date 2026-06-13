@@ -32,7 +32,7 @@ namespace SiapControl.Tests.Common
             var module = new ModuleModel
             {
                 AppName = "Modulo generico",
-                FileDescription = "IVA Declaracion Jurada",
+                ProductName = "IVA",
                 OriginalFilename = "iva.exe"
             };
             var catalog = new List<AfipApplicationCatalogItem>
@@ -44,6 +44,22 @@ namespace SiapControl.Tests.Common
 
             Assert.NotNull(match);
             Assert.Equal("/iva", match.CatalogItem.Link);
+        }
+
+        [Fact]
+        public void FindSafeMatch_DoesNotMatchSingleSharedGenericToken()
+        {
+            var matcher = new AfipModuleMatcher();
+            var module = new ModuleModel { AppName = "Bienes Personales", AppVersion = "7.0" };
+            var catalog = new List<AfipApplicationCatalogItem>
+            {
+                new AfipApplicationCatalogItem { Category = "Bienes Personales", Title = "Acciones y Participaciones Societarias", Link = "/acciones" },
+                new AfipApplicationCatalogItem { Category = "Ganancia Personas Fisicas", Title = "Ganancias Personas Fisicas y Bienes Personales", Link = "/ganancias" }
+            };
+
+            AfipModuleMatch match = matcher.FindSafeMatch(module, catalog);
+
+            Assert.Null(match);
         }
 
         [Fact]

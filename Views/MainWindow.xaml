@@ -12,6 +12,7 @@
                 <Separator/>
                 <MenuItem x:Name="UpdateAppMenuItem" Header="_Actualizar modulo..."/>
                 <MenuItem x:Name="AutoUpdaterMenuItem" Header="Autoupdater de _modulos..."/>
+                <MenuItem x:Name="AfipCatalogMenuItem" Header="_Catalogo ARCA..."/>
                 <Separator/>
                 <MenuItem x:Name="ExitMenuItem" Header="_Salir"/>
             </MenuItem>
@@ -53,6 +54,7 @@
                         <MenuItem x:Name="SearchInstallationsContextMenuItem" Header="Buscar instalaciones..."/>
                         <MenuItem x:Name="UpdateAppContextMenuItem" Header="Actualizar modulo..."/>
                         <MenuItem x:Name="AutoUpdaterContextMenuItem" Header="Autoupdater de modulos..."/>
+                        <MenuItem x:Name="AfipCatalogContextMenuItem" Header="Catalogo ARCA..."/>
                         <Separator/>
                         <MenuItem x:Name="EditUserContextMenuItem" Header="Editar"/>
                         <MenuItem x:Name="ModulesContextMenuItem" Header="Ver modulos"/>

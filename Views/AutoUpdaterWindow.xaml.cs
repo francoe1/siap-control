@@ -23,6 +23,8 @@ namespace SiapControl.Views
         private sealed class AutoUpdatePlanRow : INotifyPropertyChanged
         {
             private bool _active;
+            private string _status = string.Empty;
+            private int _progress;
             public event PropertyChangedEventHandler? PropertyChanged;
 
             public int UserId { get; set; }
@@ -32,7 +34,29 @@ namespace SiapControl.Views
             public string InstalledVersion { get; set; } = string.Empty;
             public string RemoteName { get; set; } = string.Empty;
             public string RemoteVersion { get; set; } = string.Empty;
-            public string Status { get; set; } = string.Empty;
+            public string Status
+            {
+                get => _status;
+                set => SetField(ref _status, value);
+            }
+
+            public int Progress
+            {
+                get => _progress;
+                set
+                {
+                    if (_progress == value)
+                    {
+                        return;
+                    }
+
+                    _progress = value;
+                    PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(nameof(Progress)));
+                    PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(nameof(ProgressText)));
+                }
+            }
+
+            public string ProgressText => Progress <= 0 ? string.Empty : Progress + "%";
             public bool CanUpdate { get; set; }
             public AutoUpdatePlanItem PlanItem { get; set; } = new AutoUpdatePlanItem();
 
@@ -49,6 +73,17 @@ namespace SiapControl.Views
                     _active = value;
                     PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(nameof(Active)));
                 }
+            }
+
+            private void SetField<T>(ref T field, T value, [CallerMemberName] string? propertyName = null)
+            {
+                if (EqualityComparer<T>.Default.Equals(field, value))
+                {
+                    return;
+                }
+
+                field = value;
+                PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(propertyName));
             }
         }
 
@@ -121,7 +156,19 @@ namespace SiapControl.Views
             try
             {
                 SetBusy(true, "Actualizando modulos seleccionados...");
-                AutoUpdateRunResult result = await _runner.RunPlanAsync(selected);
+                var progress = new Progress<AutoUpdateProgress>(update =>
+                {
+                    AutoUpdatePlanRow? row = _allRows.FirstOrDefault(item => item.ModuleId == update.ModuleId && item.UserId == update.UserId);
+                    if (row != null)
+                    {
+                        row.Status = update.Message;
+                        row.Progress = update.Percentage;
+                    }
+
+                    StatusText.Text = update.Message;
+                });
+
+                AutoUpdateRunResult result = await _runner.RunPlanAsync(selected, progress);
                 StatusText.Text = result.Summary;
                 MessageBox.Show(this, result.Summary, "Actualizacion finalizada", MessageBoxButton.OK, MessageBoxImage.Information);
                 await CreatePlanAsync();

@@ -43,6 +43,8 @@ namespace SiapControl.Common
         private static readonly object CatalogCacheLock = new object();
         private static IReadOnlyList<AfipApplicationCatalogItem>? _cachedCatalog;
         private static DateTime _cachedCatalogAt;
+        private static readonly object PackageCacheLock = new object();
+        private static readonly Dictionary<string, Tuple<AfipApplicationPackage?, DateTime>> PackageCache = new Dictionary<string, Tuple<AfipApplicationPackage?, DateTime>>(StringComparer.OrdinalIgnoreCase);
         private readonly HttpClient _client;
 
         public AfipApplicationCatalogService()
@@ -78,10 +80,19 @@ namespace SiapControl.Common
 
         public async Task<AfipApplicationPackage?> ResolvePackageAsync(AfipApplicationCatalogItem item)
         {
+            lock (PackageCacheLock)
+            {
+                if (PackageCache.TryGetValue(item.Link, out Tuple<AfipApplicationPackage?, DateTime> cached) &&
+                    DateTime.Now - cached.Item2 < CatalogCacheDuration)
+                {
+                    return cached.Item1;
+                }
+            }
+
             Uri itemUri = ResolveUri(item.Link, BaseUri);
             if (IsZip(itemUri))
             {
-                return new AfipApplicationPackage
+                var package = new AfipApplicationPackage
                 {
                     CatalogItem = item,
                     DisplayName = item.Title,
@@ -89,10 +100,22 @@ namespace SiapControl.Common
                     DetailUri = itemUri,
                     DownloadUri = itemUri
                 };
+                CachePackage(item.Link, package);
+                return package;
             }
 
             string html = await _client.GetStringAsync(itemUri);
-            return ParsePackageDetail(item, itemUri, html);
+            AfipApplicationPackage? resolved = ParsePackageDetail(item, itemUri, html);
+            CachePackage(item.Link, resolved);
+            return resolved;
+        }
+
+        private static void CachePackage(string key, AfipApplicationPackage? package)
+        {
+            lock (PackageCacheLock)
+            {
+                PackageCache[key] = Tuple.Create(package, DateTime.Now);
+            }
         }
 
         public static IReadOnlyList<AfipApplicationCatalogItem> ParseCatalog(string xml)

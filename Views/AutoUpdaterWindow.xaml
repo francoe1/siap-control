@@ -33,6 +33,7 @@
                     <DataGridTextColumn Header="Aplicativo ARCA" Binding="{Binding RemoteName}" Width="*" IsReadOnly="True"/>
                     <DataGridTextColumn Header="Version ARCA" Binding="{Binding RemoteVersion}" Width="*" IsReadOnly="True"/>
                     <DataGridTextColumn Header="Estado" Binding="{Binding Status}" Width="1.3*" IsReadOnly="True"/>
+                    <DataGridTextColumn Header="Progreso" Binding="{Binding ProgressText}" Width="0.8*" IsReadOnly="True"/>
                     <DataGridCheckBoxColumn Header="Actualizar" Binding="{Binding Active, UpdateSourceTrigger=PropertyChanged}" Width="Auto"/>
                 </DataGrid.Columns>
             </DataGrid>
