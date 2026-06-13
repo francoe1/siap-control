@@ -31,20 +31,42 @@ jobs:
         shell: pwsh
         run: |
           [xml]$project = Get-Content .\SiapControl.csproj
-          $propertyGroup = $project.Project.PropertyGroup[0]
-          $current = [Version]$propertyGroup.FileVersion
-          $next = [Version]::new($current.Major, $current.Minor, $current.Build, $current.Revision + 1)
+          $propertyGroup = $project.SelectSingleNode("/Project/PropertyGroup[FileVersion or AssemblyVersion]")
+          if ($null -eq $propertyGroup) {
+            $propertyGroup = $project.SelectSingleNode("/Project/PropertyGroup[1]")
+          }
+          if ($null -eq $propertyGroup) {
+            throw "No PropertyGroup found in SiapControl.csproj."
+          }
+
+          $fileVersionNode = $propertyGroup.SelectSingleNode("FileVersion")
+          $currentText = if ($null -eq $fileVersionNode) { $null } else { $fileVersionNode.InnerText }
+          if ([string]::IsNullOrWhiteSpace($currentText)) {
+            $assemblyVersionNode = $propertyGroup.SelectSingleNode("AssemblyVersion")
+            $currentText = if ($null -eq $assemblyVersionNode) { $null } else { $assemblyVersionNode.InnerText }
+          }
+          if ([string]::IsNullOrWhiteSpace($currentText)) {
+            throw "No FileVersion or AssemblyVersion found in SiapControl.csproj."
+          }
+
+          $current = [Version]$currentText
+          $build = if ($current.Build -lt 0) { 0 } else { $current.Build }
+          $revision = if ($current.Revision -lt 0) { 1 } else { $current.Revision + 1 }
+          $next = [Version]::new($current.Major, $current.Minor, $build, $revision)
           $nextText = $next.ToString()
 
-          $propertyGroup.AssemblyVersion = $nextText
-          $propertyGroup.FileVersion = $nextText
-          if ($propertyGroup.Version -eq $null) {
-            $versionElement = $project.CreateElement("Version")
-            $versionElement.InnerText = $nextText
-            $propertyGroup.AppendChild($versionElement) | Out-Null
-          } else {
-            $propertyGroup.Version = $nextText
+          function Set-ProjectProperty([System.Xml.XmlElement]$group, [string]$name, [string]$value) {
+            $node = $group.SelectSingleNode($name)
+            if ($null -eq $node) {
+              $node = $project.CreateElement($name)
+              $group.AppendChild($node) | Out-Null
+            }
+            $node.InnerText = $value
           }
+
+          Set-ProjectProperty $propertyGroup "AssemblyVersion" $nextText
+          Set-ProjectProperty $propertyGroup "FileVersion" $nextText
+          Set-ProjectProperty $propertyGroup "Version" $nextText
 
           $project.Save((Resolve-Path .\SiapControl.csproj))
           "VERSION=$nextText" | Out-File -FilePath $env:GITHUB_ENV -Append
