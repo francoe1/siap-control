@@ -32,7 +32,7 @@ namespace SiapControl.Common
         {
             try
             {
-                if (System.IO.Path.GetExtension(_path).ToLower().Equals("exe"))
+                if (!System.IO.Path.GetExtension(_path).Equals(".exe", StringComparison.OrdinalIgnoreCase))
                 {
                     MessageBox.Show("El archivo debe ser un ejecutable", "Error");
                     return false;

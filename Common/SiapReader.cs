@@ -47,8 +47,8 @@ namespace SiapControl.Common
                 FileVersionInfo info = FileVersionInfo.GetVersionInfo(file);
                 return new ModuleModel
                 {
-                    AppName = info.ProductName,
-                    AppVersion = info.ProductVersion
+                    AppName = string.IsNullOrWhiteSpace(info.ProductName) ? Path.GetFileNameWithoutExtension(file) : info.ProductName,
+                    AppVersion = string.IsNullOrWhiteSpace(info.ProductVersion) ? "undefined" : info.ProductVersion
                 };
             }
             catch

@@ -5,28 +5,64 @@ using System.Threading.Tasks;
 
 namespace SiapControl.Data
 {
+    public sealed class DatabaseInitializationProgress
+    {
+        public DatabaseInitializationProgress(int percentage, string message)
+        {
+            Percentage = percentage;
+            Message = message;
+        }
+
+        public int Percentage { get; }
+        public string Message { get; }
+    }
+
     public static class Database
     {
-        private static SqliteConnection _connection;
-        public static UserRepository Users { get; private set; }
-        public static ModuleRepository UserModules { get; private set; }
+        private static SqliteConnection? _connection;
+        public static UserRepository Users { get; private set; } = null!;
+        public static ModuleRepository UserModules { get; private set; } = null!;
 
-        public static async Task ConnectAsync()
+        public static async Task ConnectAsync(IProgress<DatabaseInitializationProgress>? progress = null)
         {
+            if (_connection != null)
+            {
+                progress?.Report(new DatabaseInitializationProgress(100, "Base de datos lista."));
+                return;
+            }
+
+            progress?.Report(new DatabaseInitializationProgress(5, "Preparando base de datos..."));
+
             string path = Path.Combine(AppDomain.CurrentDomain.BaseDirectory, "program.db");
             Directory.CreateDirectory(Path.GetDirectoryName(path)!);
 
-            static void InitializeSchema(SqliteConnection conn)
+            static async Task InitializeSchemaAsync(SqliteConnection conn, IProgress<DatabaseInitializationProgress>? schemaProgress)
             {
-                using var cmd = conn.CreateCommand();
-                cmd.CommandText = @"CREATE TABLE IF NOT EXISTS Users (
+                schemaProgress?.Report(new DatabaseInitializationProgress(55, "Configurando SQLite..."));
+
+                using (var cmd = conn.CreateCommand())
+                {
+                    cmd.CommandText = "PRAGMA foreign_keys = ON;";
+                    await cmd.ExecuteNonQueryAsync();
+                }
+
+                schemaProgress?.Report(new DatabaseInitializationProgress(70, "Creando tabla de usuarios..."));
+
+                using (var cmd = conn.CreateCommand())
+                {
+                    cmd.CommandText = @"CREATE TABLE IF NOT EXISTS Users (
                                             Id INTEGER PRIMARY KEY AUTOINCREMENT,
                                             User TEXT NOT NULL,
                                             Path TEXT NOT NULL
                                         );";
-                cmd.ExecuteNonQuery();
+                    await cmd.ExecuteNonQueryAsync();
+                }
 
-                cmd.CommandText = @"CREATE TABLE IF NOT EXISTS Modules (
+                schemaProgress?.Report(new DatabaseInitializationProgress(85, "Creando tabla de modulos..."));
+
+                using (var cmd = conn.CreateCommand())
+                {
+                    cmd.CommandText = @"CREATE TABLE IF NOT EXISTS Modules (
                                             Id INTEGER PRIMARY KEY AUTOINCREMENT,
                                             UserId INTEGER NOT NULL,
                                             AppName TEXT,
@@ -34,7 +70,8 @@ namespace SiapControl.Data
                                             LastUpdate TEXT,
                                             FOREIGN KEY(UserId) REFERENCES Users(Id)
                                         );";
-                cmd.ExecuteNonQuery();
+                    await cmd.ExecuteNonQueryAsync();
+                }
             }
 
             async Task<SqliteConnection> OpenAndInitAsync()
@@ -42,8 +79,11 @@ namespace SiapControl.Data
                 var conn = new SqliteConnection($"Data Source={path};Pooling=False");
                 try
                 {
+                    progress?.Report(new DatabaseInitializationProgress(25, "Abriendo conexion SQLite..."));
                     await conn.OpenAsync();
-                    InitializeSchema(conn);
+
+                    progress?.Report(new DatabaseInitializationProgress(45, "Inicializando esquema..."));
+                    await InitializeSchemaAsync(conn, progress);
                     return conn;
                 }
                 catch
@@ -59,6 +99,8 @@ namespace SiapControl.Data
             }
             catch (SqliteException ex) when (ex.SqliteErrorCode == 26 || ex.SqliteErrorCode == 14)
             {
+                progress?.Report(new DatabaseInitializationProgress(35, "Reconstruyendo base de datos danada..."));
+
                 // clear any pooled connections so the file handle is released
                 SqliteConnection.ClearAllPools();
 
@@ -80,6 +122,7 @@ namespace SiapControl.Data
 
             Users = new UserRepository(_connection);
             UserModules = new ModuleRepository(_connection);
+            progress?.Report(new DatabaseInitializationProgress(100, "Base de datos lista."));
         }
     }
 }

@@ -23,7 +23,7 @@ namespace SiapControl.Views
             {
                 if (!File.Exists(System.IO.Path.Combine(dialog.SelectedPath, "siap.exe")))
                 {
-                    MessageBox.Show("La ruta seleccionada no es correcta, por favor seleccionar la ruta de instalación de SIAP", "Error");
+                    MessageBox.Show(this, "La ruta seleccionada no es correcta. Por favor, seleccioná la ruta de instalación de SIAP.", "Error");
                     return;
                 }
 

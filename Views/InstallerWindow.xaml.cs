@@ -115,7 +115,7 @@ namespace SiapControl.Views
             if (users.Count == installed)
             {
                 Close();
-                MessageBox.Show($"Se instalaron {installed} de {users.Count}", "Instalación Finalizada");
+                MessageBox.Show(this, $"Se instalaron {installed} de {users.Count}", "Instalación finalizada");
             }
         }
     }

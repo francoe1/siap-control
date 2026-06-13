@@ -1,4 +1,6 @@
+using System;
 using System.Collections.ObjectModel;
+using System.Reflection;
 using System.Windows;
 using System.Windows.Controls;
 using SiapControl.Common;
@@ -10,14 +12,17 @@ namespace SiapControl.Views
     public partial class MainWindow : Window
     {
         private readonly ObservableCollection<UserModel> _users = new();
+        private bool _databaseReady;
 
         public MainWindow()
         {
             InitializeComponent();
+            Title = $"SiapControl v{GetApplicationVersion()}";
 
             UsersGrid.ItemsSource = _users;
             Loaded += OnLoaded;
 
+            CheckUpdateButton.Click += CheckForUpdatesManually;
             AddUserButton.Click += AddUser;
             UpdateButton.Click += UpdateApp;
             ModulesButton.Click += ShowModules;
@@ -27,8 +32,26 @@ namespace SiapControl.Views
 
         private async void OnLoaded(object sender, RoutedEventArgs e)
         {
-            await Database.ConnectAsync();
-            LoadUsers();
+            Loaded -= OnLoaded;
+
+            var progress = new Progress<DatabaseInitializationProgress>(ShowStartupProgress);
+
+            try
+            {
+                SetControlsEnabled(false);
+                await Database.ConnectAsync(progress);
+                _databaseReady = true;
+                StartupStatusPanel.Visibility = Visibility.Collapsed;
+                SetControlsEnabled(true);
+                LoadUsers();
+                _ = CheckForUpdatesAsync(showNoUpdateMessage: false);
+            }
+            catch (Exception ex)
+            {
+                StartupStatusText.Text = "No se pudo abrir la base de datos.";
+                MessageBox.Show($"No se pudo abrir la base de datos.\n{ex.Message}", "Error", MessageBoxButton.OK, MessageBoxImage.Error);
+                Close();
+            }
         }
 
         private void LoadUsers()
@@ -41,9 +64,90 @@ namespace SiapControl.Views
             ModulesButton.IsEnabled = UsersGrid.SelectedItem != null;
         }
 
+        private void ShowStartupProgress(DatabaseInitializationProgress progress)
+        {
+            StartupStatusText.Text = progress.Message;
+            StartupProgressBar.Value = progress.Percentage;
+        }
+
+        private async void CheckForUpdatesManually(object sender, RoutedEventArgs e)
+        {
+            await CheckForUpdatesAsync(showNoUpdateMessage: true);
+        }
+
+        private async System.Threading.Tasks.Task CheckForUpdatesAsync(bool showNoUpdateMessage)
+        {
+            bool wasEnabled = CheckUpdateButton.IsEnabled;
+
+            try
+            {
+                CheckUpdateButton.IsEnabled = false;
+                var updateService = new GitHubUpdateService();
+                GitHubUpdate? update = await updateService.CheckForUpdateAsync();
+                if (update == null)
+                {
+                    if (showNoUpdateMessage)
+                    {
+                        MessageBox.Show(this, "Ya tenés la última versión disponible.", "Sin actualizaciones", MessageBoxButton.OK, MessageBoxImage.Information);
+                    }
+
+                    return;
+                }
+
+                MessageBoxResult result = MessageBox.Show(
+                    this,
+                    $"Hay una nueva versión disponible: {update.Version}.\n¿Querés descargarla e instalarla ahora?",
+                    "Actualización disponible",
+                    MessageBoxButton.YesNo,
+                    MessageBoxImage.Information);
+
+                if (result != MessageBoxResult.Yes)
+                {
+                    return;
+                }
+
+                SetControlsEnabled(false);
+                StartupStatusText.Text = "Descargando actualización...";
+                StartupProgressBar.IsIndeterminate = true;
+                StartupStatusPanel.Visibility = Visibility.Visible;
+
+                await updateService.DownloadAndInstallAsync(update);
+                Application.Current.Shutdown();
+            }
+            catch (Exception ex)
+            {
+                if (showNoUpdateMessage)
+                {
+                    MessageBox.Show(this, $"No se pudo buscar actualizaciones.\n{ex.Message}", "Error", MessageBoxButton.OK, MessageBoxImage.Warning);
+                }
+            }
+            finally
+            {
+                if (_databaseReady)
+                {
+                    CheckUpdateButton.IsEnabled = wasEnabled;
+                }
+            }
+        }
+
+        private static string GetApplicationVersion()
+        {
+            Version version = Assembly.GetExecutingAssembly().GetName().Version ?? new Version(0, 0, 0, 0);
+            return version.ToString();
+        }
+
+        private void SetControlsEnabled(bool isEnabled)
+        {
+            UsersGrid.IsEnabled = isEnabled;
+            CheckUpdateButton.IsEnabled = isEnabled;
+            AddUserButton.IsEnabled = isEnabled;
+            UpdateButton.IsEnabled = isEnabled;
+            ModulesButton.IsEnabled = isEnabled && UsersGrid.SelectedItem != null;
+        }
+
         private void AddUser(object sender, RoutedEventArgs e)
         {
-            var dialog = new UserWindow();
+            var dialog = new UserWindow { Owner = this };
             if (dialog.ShowDialog() == true)
             {
                 var model = new UserModel { User = dialog.UserName, Path = dialog.SiapPath };
@@ -57,7 +161,7 @@ namespace SiapControl.Views
             if (UsersGrid.SelectedItem is not UserModel user)
                 return;
 
-            var dialog = new UserWindow { UserName = user.User, SiapPath = user.Path };
+            var dialog = new UserWindow { Owner = this, UserName = user.User, SiapPath = user.Path };
             if (dialog.ShowDialog() == true)
             {
                 user.User = dialog.UserName;
@@ -72,7 +176,7 @@ namespace SiapControl.Views
             if (UsersGrid.SelectedItem is not UserModel user)
                 return;
 
-            var win = new UserModulesWindow(user.Id);
+            var win = new UserModulesWindow(user.Id) { Owner = this };
             win.ShowDialog();
         }
 
@@ -86,15 +190,19 @@ namespace SiapControl.Views
             if (open.ShowDialog() == true)
             {
                 var setup = new SetupReader(open.FileName);
-                var win = new InstallerWindow(setup);
+                if (!setup.Open())
+                {
+                    return;
+                }
+
+                var win = new InstallerWindow(setup) { Owner = this };
                 win.ShowDialog();
             }
         }
 
         private void OnSelectionChanged(object sender, SelectionChangedEventArgs e)
         {
-            ModulesButton.IsEnabled = UsersGrid.SelectedItem != null;
+            ModulesButton.IsEnabled = _databaseReady && UsersGrid.SelectedItem != null;
         }
     }
 }
-
