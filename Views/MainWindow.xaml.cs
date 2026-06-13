@@ -1,5 +1,8 @@
 using System;
+using System.Collections.Generic;
 using System.Collections.ObjectModel;
+using System.IO;
+using System.Linq;
 using System.Reflection;
 using System.Windows;
 using System.Windows.Controls;
@@ -23,6 +26,7 @@ namespace SiapControl.Views
             Loaded += OnLoaded;
 
             CheckUpdateButton.Click += CheckForUpdatesManually;
+            SearchInstallationsButton.Click += SearchInstallations;
             AddUserButton.Click += AddUser;
             UpdateButton.Click += UpdateApp;
             ModulesButton.Click += ShowModules;
@@ -140,9 +144,93 @@ namespace SiapControl.Views
         {
             UsersGrid.IsEnabled = isEnabled;
             CheckUpdateButton.IsEnabled = isEnabled;
+            SearchInstallationsButton.IsEnabled = isEnabled;
             AddUserButton.IsEnabled = isEnabled;
             UpdateButton.IsEnabled = isEnabled;
             ModulesButton.IsEnabled = isEnabled && UsersGrid.SelectedItem != null;
+        }
+
+        private async void SearchInstallations(object sender, RoutedEventArgs e)
+        {
+            var dialog = new System.Windows.Forms.FolderBrowserDialog
+            {
+                Description = "Selecciona la carpeta donde buscar instalaciones de SIAP"
+            };
+
+            if (dialog.ShowDialog() != System.Windows.Forms.DialogResult.OK)
+            {
+                return;
+            }
+
+            try
+            {
+                SetControlsEnabled(false);
+                StartupStatusText.Text = "Buscando instalaciones de SIAP...";
+                StartupProgressBar.IsIndeterminate = true;
+                StartupStatusPanel.Visibility = Visibility.Visible;
+
+                IReadOnlyList<SiapInstallation> installations = await System.Threading.Tasks.Task.Run(
+                    () => SiapInstallationFinder.FindAll(dialog.SelectedPath));
+
+                var existingPaths = new HashSet<string>(
+                    Database.Users.FindAll().Select(user => NormalizePath(user.Path)),
+                    StringComparer.OrdinalIgnoreCase);
+
+                int added = 0;
+                int skipped = 0;
+
+                foreach (SiapInstallation installation in installations)
+                {
+                    string normalizedPath = NormalizePath(installation.Path);
+                    if (!existingPaths.Add(normalizedPath))
+                    {
+                        skipped++;
+                        continue;
+                    }
+
+                    var model = new UserModel
+                    {
+                        User = installation.Name,
+                        Path = installation.Path
+                    };
+
+                    Database.Users.Insert(model);
+                    added++;
+                }
+
+                LoadUsers();
+
+                MessageBox.Show(
+                    this,
+                    $"Instalaciones encontradas: {installations.Count}\nAgregadas: {added}\nYa existentes: {skipped}",
+                    "Busqueda finalizada",
+                    MessageBoxButton.OK,
+                    MessageBoxImage.Information);
+            }
+            catch (Exception ex)
+            {
+                MessageBox.Show(this, $"No se pudo buscar instalaciones de SIAP.\n{ex.Message}", "Error", MessageBoxButton.OK, MessageBoxImage.Warning);
+            }
+            finally
+            {
+                StartupProgressBar.IsIndeterminate = false;
+                StartupStatusPanel.Visibility = Visibility.Collapsed;
+                SetControlsEnabled(true);
+            }
+        }
+
+        private static string NormalizePath(string path)
+        {
+            string normalized = path;
+            try
+            {
+                normalized = Path.GetFullPath(path);
+            }
+            catch (Exception)
+            {
+            }
+
+            return normalized.TrimEnd(Path.DirectorySeparatorChar, Path.AltDirectorySeparatorChar);
         }
 
         private void AddUser(object sender, RoutedEventArgs e)
