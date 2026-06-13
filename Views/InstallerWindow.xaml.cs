@@ -265,13 +265,32 @@ namespace SiapControl.Views
                     UserId = user.Id,
                     AppVersion = currentModule.AppVersion,
                     AppName = currentModule.AppName,
+                    ExecutableName = currentModule.ExecutableName,
+                    IconName = currentModule.IconName,
+                    ProductName = currentModule.ProductName,
+                    FileDescription = currentModule.FileDescription,
+                    InternalName = currentModule.InternalName,
+                    OriginalFilename = currentModule.OriginalFilename,
+                    CompanyName = currentModule.CompanyName,
+                    Comments = currentModule.Comments,
+                    FileVersion = currentModule.FileVersion,
                     LastUpdate = DateTime.Now
                 };
                 Database.UserModules.Insert(module);
             }
             else
             {
+                module.AppName = currentModule.AppName;
                 module.AppVersion = currentModule.AppVersion;
+                module.ExecutableName = currentModule.ExecutableName;
+                module.IconName = currentModule.IconName;
+                module.ProductName = currentModule.ProductName;
+                module.FileDescription = currentModule.FileDescription;
+                module.InternalName = currentModule.InternalName;
+                module.OriginalFilename = currentModule.OriginalFilename;
+                module.CompanyName = currentModule.CompanyName;
+                module.Comments = currentModule.Comments;
+                module.FileVersion = currentModule.FileVersion;
                 module.LastUpdate = DateTime.Now;
                 Database.UserModules.Update(module);
             }

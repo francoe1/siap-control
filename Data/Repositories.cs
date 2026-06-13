@@ -94,14 +94,23 @@ namespace SiapControl.Data
                 UserId = reader.GetInt32(1),
                 AppName = reader.IsDBNull(2) ? string.Empty : reader.GetString(2),
                 AppVersion = reader.IsDBNull(3) ? string.Empty : reader.GetString(3),
-                LastUpdate = reader.IsDBNull(4) ? DateTime.MinValue : DateTime.Parse(reader.GetString(4))
+                LastUpdate = reader.IsDBNull(4) ? DateTime.MinValue : DateTime.Parse(reader.GetString(4)),
+                ExecutableName = reader.IsDBNull(5) ? string.Empty : reader.GetString(5),
+                IconName = reader.IsDBNull(6) ? string.Empty : reader.GetString(6),
+                ProductName = reader.IsDBNull(7) ? string.Empty : reader.GetString(7),
+                FileDescription = reader.IsDBNull(8) ? string.Empty : reader.GetString(8),
+                InternalName = reader.IsDBNull(9) ? string.Empty : reader.GetString(9),
+                OriginalFilename = reader.IsDBNull(10) ? string.Empty : reader.GetString(10),
+                CompanyName = reader.IsDBNull(11) ? string.Empty : reader.GetString(11),
+                Comments = reader.IsDBNull(12) ? string.Empty : reader.GetString(12),
+                FileVersion = reader.IsDBNull(13) ? string.Empty : reader.GetString(13)
             };
         }
 
         public ModuleModel FindByUserAndAppName(int userId, string appName)
         {
             using var cmd = _connection.CreateCommand();
-            cmd.CommandText = "SELECT Id, UserId, AppName, AppVersion, LastUpdate FROM Modules WHERE UserId=@userId AND AppName=@appName";
+            cmd.CommandText = SelectModulesSql + " WHERE UserId=@userId AND AppName=@appName";
             cmd.Parameters.AddWithValue("@userId", userId);
             cmd.Parameters.AddWithValue("@appName", appName);
             using var reader = cmd.ExecuteReader();
@@ -115,7 +124,15 @@ namespace SiapControl.Data
         public IEnumerable<ModuleModel> FindByUserAndName(int userId, string name)
         {
             using var cmd = _connection.CreateCommand();
-            cmd.CommandText = "SELECT Id, UserId, AppName, AppVersion, LastUpdate FROM Modules WHERE UserId=@userId AND lower(AppName) LIKE @name";
+            cmd.CommandText = SelectModulesSql + @" WHERE UserId=@userId AND (
+                                    lower(coalesce(AppName, '')) LIKE @name OR
+                                    lower(coalesce(IconName, '')) LIKE @name OR
+                                    lower(coalesce(ProductName, '')) LIKE @name OR
+                                    lower(coalesce(FileDescription, '')) LIKE @name OR
+                                    lower(coalesce(InternalName, '')) LIKE @name OR
+                                    lower(coalesce(OriginalFilename, '')) LIKE @name OR
+                                    lower(coalesce(ExecutableName, '')) LIKE @name
+                                )";
             cmd.Parameters.AddWithValue("@userId", userId);
             cmd.Parameters.AddWithValue("@name", "%" + name.ToLower() + "%");
             using var reader = cmd.ExecuteReader();
@@ -128,7 +145,7 @@ namespace SiapControl.Data
         public IEnumerable<ModuleModel> FindAll()
         {
             using var cmd = _connection.CreateCommand();
-            cmd.CommandText = "SELECT Id, UserId, AppName, AppVersion, LastUpdate FROM Modules";
+            cmd.CommandText = SelectModulesSql;
             using var reader = cmd.ExecuteReader();
             while (reader.Read())
             {
@@ -139,22 +156,34 @@ namespace SiapControl.Data
         public void Insert(ModuleModel module)
         {
             using var cmd = _connection.CreateCommand();
-            cmd.CommandText = "INSERT INTO Modules (UserId, AppName, AppVersion, LastUpdate) VALUES (@userId, @appName, @appVersion, @lastUpdate); SELECT last_insert_rowid();";
-            cmd.Parameters.AddWithValue("@userId", module.UserId);
-            cmd.Parameters.AddWithValue("@appName", module.AppName);
-            cmd.Parameters.AddWithValue("@appVersion", module.AppVersion);
-            cmd.Parameters.AddWithValue("@lastUpdate", module.LastUpdate.ToString("o"));
+            cmd.CommandText = @"INSERT INTO Modules
+                                    (UserId, AppName, AppVersion, LastUpdate, ExecutableName, IconName, ProductName, FileDescription, InternalName, OriginalFilename, CompanyName, Comments, FileVersion)
+                                VALUES
+                                    (@userId, @appName, @appVersion, @lastUpdate, @executableName, @iconName, @productName, @fileDescription, @internalName, @originalFilename, @companyName, @comments, @fileVersion);
+                                SELECT last_insert_rowid();";
+            AddModuleParameters(cmd, module);
             module.Id = Convert.ToInt32((long)cmd.ExecuteScalar());
         }
 
         public void Update(ModuleModel module)
         {
             using var cmd = _connection.CreateCommand();
-            cmd.CommandText = "UPDATE Modules SET UserId=@userId, AppName=@appName, AppVersion=@appVersion, LastUpdate=@lastUpdate WHERE Id=@id";
-            cmd.Parameters.AddWithValue("@userId", module.UserId);
-            cmd.Parameters.AddWithValue("@appName", module.AppName);
-            cmd.Parameters.AddWithValue("@appVersion", module.AppVersion);
-            cmd.Parameters.AddWithValue("@lastUpdate", module.LastUpdate.ToString("o"));
+            cmd.CommandText = @"UPDATE Modules SET
+                                    UserId=@userId,
+                                    AppName=@appName,
+                                    AppVersion=@appVersion,
+                                    LastUpdate=@lastUpdate,
+                                    ExecutableName=@executableName,
+                                    IconName=@iconName,
+                                    ProductName=@productName,
+                                    FileDescription=@fileDescription,
+                                    InternalName=@internalName,
+                                    OriginalFilename=@originalFilename,
+                                    CompanyName=@companyName,
+                                    Comments=@comments,
+                                    FileVersion=@fileVersion
+                                WHERE Id=@id";
+            AddModuleParameters(cmd, module);
             cmd.Parameters.AddWithValue("@id", module.Id);
             cmd.ExecuteNonQuery();
         }
@@ -173,6 +202,28 @@ namespace SiapControl.Data
             cmd.CommandText = "DELETE FROM Modules WHERE UserId=@userId";
             cmd.Parameters.AddWithValue("@userId", userId);
             cmd.ExecuteNonQuery();
+        }
+
+        private const string SelectModulesSql = @"SELECT Id, UserId, AppName, AppVersion, LastUpdate,
+                                                        ExecutableName, IconName, ProductName, FileDescription,
+                                                        InternalName, OriginalFilename, CompanyName, Comments, FileVersion
+                                                  FROM Modules";
+
+        private static void AddModuleParameters(SqliteCommand cmd, ModuleModel module)
+        {
+            cmd.Parameters.AddWithValue("@userId", module.UserId);
+            cmd.Parameters.AddWithValue("@appName", module.AppName ?? string.Empty);
+            cmd.Parameters.AddWithValue("@appVersion", module.AppVersion ?? string.Empty);
+            cmd.Parameters.AddWithValue("@lastUpdate", module.LastUpdate.ToString("o"));
+            cmd.Parameters.AddWithValue("@executableName", module.ExecutableName ?? string.Empty);
+            cmd.Parameters.AddWithValue("@iconName", module.IconName ?? string.Empty);
+            cmd.Parameters.AddWithValue("@productName", module.ProductName ?? string.Empty);
+            cmd.Parameters.AddWithValue("@fileDescription", module.FileDescription ?? string.Empty);
+            cmd.Parameters.AddWithValue("@internalName", module.InternalName ?? string.Empty);
+            cmd.Parameters.AddWithValue("@originalFilename", module.OriginalFilename ?? string.Empty);
+            cmd.Parameters.AddWithValue("@companyName", module.CompanyName ?? string.Empty);
+            cmd.Parameters.AddWithValue("@comments", module.Comments ?? string.Empty);
+            cmd.Parameters.AddWithValue("@fileVersion", module.FileVersion ?? string.Empty);
         }
     }
 

@@ -38,6 +38,15 @@ namespace SiapControl.Tests.Data
                                         UserId INTEGER NOT NULL,
                                         AppName TEXT,
                                         AppVersion TEXT,
+                                        ExecutableName TEXT,
+                                        IconName TEXT,
+                                        ProductName TEXT,
+                                        FileDescription TEXT,
+                                        InternalName TEXT,
+                                        OriginalFilename TEXT,
+                                        CompanyName TEXT,
+                                        Comments TEXT,
+                                        FileVersion TEXT,
                                         LastUpdate TEXT,
                                         FOREIGN KEY(UserId) REFERENCES Users(Id)
                                     );";

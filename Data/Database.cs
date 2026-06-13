@@ -68,11 +68,30 @@ namespace SiapControl.Data
                                             UserId INTEGER NOT NULL,
                                             AppName TEXT,
                                             AppVersion TEXT,
+                                            ExecutableName TEXT,
+                                            IconName TEXT,
+                                            ProductName TEXT,
+                                            FileDescription TEXT,
+                                            InternalName TEXT,
+                                            OriginalFilename TEXT,
+                                            CompanyName TEXT,
+                                            Comments TEXT,
+                                            FileVersion TEXT,
                                             LastUpdate TEXT,
                                             FOREIGN KEY(UserId) REFERENCES Users(Id)
                                         );";
                     await cmd.ExecuteNonQueryAsync();
                 }
+
+                await EnsureColumnAsync(conn, "Modules", "ExecutableName", "TEXT");
+                await EnsureColumnAsync(conn, "Modules", "IconName", "TEXT");
+                await EnsureColumnAsync(conn, "Modules", "ProductName", "TEXT");
+                await EnsureColumnAsync(conn, "Modules", "FileDescription", "TEXT");
+                await EnsureColumnAsync(conn, "Modules", "InternalName", "TEXT");
+                await EnsureColumnAsync(conn, "Modules", "OriginalFilename", "TEXT");
+                await EnsureColumnAsync(conn, "Modules", "CompanyName", "TEXT");
+                await EnsureColumnAsync(conn, "Modules", "Comments", "TEXT");
+                await EnsureColumnAsync(conn, "Modules", "FileVersion", "TEXT");
 
                 schemaProgress?.Report(new DatabaseInitializationProgress(92, "Creando configuracion de autoupdater..."));
 
@@ -87,6 +106,28 @@ namespace SiapControl.Data
                                             LastAutoUpdateRun TEXT
                                         );";
                     await cmd.ExecuteNonQueryAsync();
+                }
+            }
+
+            static async Task EnsureColumnAsync(SqliteConnection conn, string table, string column, string type)
+            {
+                using (var check = conn.CreateCommand())
+                {
+                    check.CommandText = $"PRAGMA table_info({table});";
+                    using var reader = await check.ExecuteReaderAsync();
+                    while (await reader.ReadAsync())
+                    {
+                        if (reader.GetString(1).Equals(column, StringComparison.OrdinalIgnoreCase))
+                        {
+                            return;
+                        }
+                    }
+                }
+
+                using (var alter = conn.CreateCommand())
+                {
+                    alter.CommandText = $"ALTER TABLE {table} ADD COLUMN {column} {type};";
+                    await alter.ExecuteNonQueryAsync();
                 }
             }
 

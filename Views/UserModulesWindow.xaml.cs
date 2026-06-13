@@ -58,7 +58,8 @@ namespace SiapControl.Views
                 }
 
                 ModuleModel module = modules[i];
-                string file = Path.Combine(_user.Path, module.AppName + ".exe");
+                string executableName = string.IsNullOrWhiteSpace(module.ExecutableName) ? module.AppName : module.ExecutableName;
+                string file = Path.Combine(_user.Path, executableName, executableName + ".exe");
                 if (File.Exists(file))
                 {
                     ModuleModel currentModule = await Task.Run(() => SiapReader.GetModuleModel(file));

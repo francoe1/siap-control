@@ -19,14 +19,19 @@ namespace SiapControl.Common
     {
         public AfipModuleMatch? FindSafeMatch(ModuleModel module, IEnumerable<AfipApplicationCatalogItem> catalog)
         {
-            string moduleName = Normalize(module.AppName);
-            if (string.IsNullOrWhiteSpace(moduleName))
+            string[] moduleNames = GetModuleSearchNames(module)
+                .Select(Normalize)
+                .Where(value => !string.IsNullOrWhiteSpace(value))
+                .Distinct(StringComparer.OrdinalIgnoreCase)
+                .ToArray();
+
+            if (moduleNames.Length == 0)
             {
                 return null;
             }
 
             AfipModuleMatch[] candidates = catalog
-                .Select(item => new AfipModuleMatch { CatalogItem = item, Confidence = Score(moduleName, item) })
+                .Select(item => new AfipModuleMatch { CatalogItem = item, Confidence = moduleNames.Max(moduleName => Score(moduleName, item)) })
                 .Where(match => match.Confidence >= 0.72)
                 .OrderByDescending(match => match.Confidence)
                 .Take(2)
@@ -40,6 +45,19 @@ namespace SiapControl.Common
             AfipModuleMatch best = candidates[0];
             best.IsSafe = best.Confidence >= 0.90 || candidates.Length == 1 || best.Confidence - candidates[1].Confidence >= 0.18;
             return best.IsSafe ? best : null;
+        }
+
+        public static IEnumerable<string> GetModuleSearchNames(ModuleModel module)
+        {
+            yield return module.AppName;
+            yield return module.IconName;
+            yield return module.ProductName;
+            yield return module.FileDescription;
+            yield return module.InternalName;
+            yield return module.OriginalFilename;
+            yield return module.ExecutableName;
+            yield return module.CompanyName;
+            yield return module.Comments;
         }
 
         public static string Normalize(string value)
@@ -84,9 +102,15 @@ namespace SiapControl.Common
 
             string[] moduleTokens = moduleName.Split(new[] { ' ' }, StringSplitOptions.RemoveEmptyEntries);
             string[] itemTokens = combined.Split(new[] { ' ' }, StringSplitOptions.RemoveEmptyEntries);
+            string[] primaryItemTokens = (category + " " + title).Split(new[] { ' ' }, StringSplitOptions.RemoveEmptyEntries);
             if (moduleTokens.Length == 0 || itemTokens.Length == 0)
             {
                 return 0;
+            }
+
+            if (moduleTokens.Any(token => token.Length >= 3 && primaryItemTokens.Contains(token)))
+            {
+                return 0.90;
             }
 
             int common = moduleTokens.Count(token => itemTokens.Contains(token));

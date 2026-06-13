@@ -21,6 +21,9 @@ namespace SiapControl.Tests.Data
             Assert.NotNull(loaded);
             Assert.Equal("IVA", loaded.AppName);
             Assert.Equal("1.2.3", loaded.AppVersion);
+            Assert.Equal("ivaexe", loaded.ExecutableName);
+            Assert.Equal("IVA Icono", loaded.IconName);
+            Assert.Equal("Producto IVA", loaded.ProductName);
             Assert.Equal(module.LastUpdate, loaded.LastUpdate);
         }
 
@@ -108,6 +111,8 @@ namespace SiapControl.Tests.Data
             Assert.Equal("SinDatos", module.AppName);
             Assert.Equal(string.Empty, module.AppVersion);
             Assert.Equal(DateTime.MinValue, module.LastUpdate);
+            Assert.Equal(string.Empty, module.IconName);
+            Assert.Equal(string.Empty, module.ProductName);
         }
 
         private static ModuleModel CreateModule(string appName, string version, int userId = 1)
@@ -117,6 +122,15 @@ namespace SiapControl.Tests.Data
                 UserId = userId,
                 AppName = appName,
                 AppVersion = version,
+                ExecutableName = appName.ToLowerInvariant() + "exe",
+                IconName = appName + " Icono",
+                ProductName = "Producto " + appName,
+                FileDescription = "Descripcion " + appName,
+                InternalName = "Interno " + appName,
+                OriginalFilename = appName + ".exe",
+                CompanyName = "AFIP",
+                Comments = "Comentario " + appName,
+                FileVersion = version,
                 LastUpdate = new DateTime(2024, 1, 2, 3, 4, 5)
             };
         }

@@ -26,6 +26,27 @@ namespace SiapControl.Tests.Common
         }
 
         [Fact]
+        public void FindSafeMatch_UsesExecutableMetadataWhenAppNameDoesNotMatch()
+        {
+            var matcher = new AfipModuleMatcher();
+            var module = new ModuleModel
+            {
+                AppName = "Modulo generico",
+                FileDescription = "IVA Declaracion Jurada",
+                OriginalFilename = "iva.exe"
+            };
+            var catalog = new List<AfipApplicationCatalogItem>
+            {
+                new AfipApplicationCatalogItem { Category = "IVA", Title = "Version IVA", Link = "/iva", Keywords = "valor agregado" }
+            };
+
+            AfipModuleMatch match = matcher.FindSafeMatch(module, catalog);
+
+            Assert.NotNull(match);
+            Assert.Equal("/iva", match.CatalogItem.Link);
+        }
+
+        [Fact]
         public void Normalize_RemovesAccentsAndVersionWords()
         {
             Assert.Equal("ganancia minima presunta", AfipModuleMatcher.Normalize("Ganancia Minima Presunta Version 9.0 Release 2"));

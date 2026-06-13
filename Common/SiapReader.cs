@@ -42,19 +42,58 @@ namespace SiapControl.Common
 
         public static ModuleModel GetModuleModel(string file)
         {
+            string executableName = Path.GetFileNameWithoutExtension(file);
+            string iconName = GetIconName(file);
             try
             {
                 FileVersionInfo info = FileVersionInfo.GetVersionInfo(file);
+                string productName = info.ProductName ?? string.Empty;
+                string productVersion = info.ProductVersion ?? string.Empty;
                 return new ModuleModel
                 {
-                    AppName = string.IsNullOrWhiteSpace(info.ProductName) ? Path.GetFileNameWithoutExtension(file) : info.ProductName,
-                    AppVersion = string.IsNullOrWhiteSpace(info.ProductVersion) ? "undefined" : info.ProductVersion
+                    AppName = FirstValue(iconName, productName, executableName),
+                    AppVersion = string.IsNullOrWhiteSpace(productVersion) ? "undefined" : productVersion,
+                    ExecutableName = executableName,
+                    IconName = iconName,
+                    ProductName = productName,
+                    FileDescription = info.FileDescription ?? string.Empty,
+                    InternalName = info.InternalName ?? string.Empty,
+                    OriginalFilename = info.OriginalFilename ?? string.Empty,
+                    CompanyName = info.CompanyName ?? string.Empty,
+                    Comments = info.Comments ?? string.Empty,
+                    FileVersion = info.FileVersion ?? string.Empty
                 };
             }
             catch
             {
-                return new ModuleModel { AppName = Path.GetFileNameWithoutExtension(file), AppVersion = "undefined" };
+                return new ModuleModel
+                {
+                    AppName = FirstValue(iconName, executableName),
+                    AppVersion = "undefined",
+                    ExecutableName = executableName,
+                    IconName = iconName
+                };
             }
+        }
+
+        private static string GetIconName(string executablePath)
+        {
+            string? directory = Path.GetDirectoryName(executablePath);
+            if (string.IsNullOrWhiteSpace(directory) || !Directory.Exists(directory))
+            {
+                return string.Empty;
+            }
+
+            string? icon = Directory.GetFiles(directory, "*.ico")
+                .OrderBy(Path.GetFileName)
+                .FirstOrDefault();
+
+            return icon == null ? string.Empty : Path.GetFileNameWithoutExtension(icon);
+        }
+
+        private static string FirstValue(params string[] values)
+        {
+            return values.FirstOrDefault(value => !string.IsNullOrWhiteSpace(value)) ?? string.Empty;
         }
     }
 }

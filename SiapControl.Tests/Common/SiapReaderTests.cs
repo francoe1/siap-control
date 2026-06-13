@@ -73,6 +73,30 @@ namespace SiapControl.Tests.Common
             }
         }
 
+        [Fact]
+        public void GetModuleModel_UsesIconFileNameAsApplicationName()
+        {
+            var directory = CreateTempDirectory();
+            try
+            {
+                var moduleDirectory = Path.Combine(directory, "IVA");
+                Directory.CreateDirectory(moduleDirectory);
+                var file = Path.Combine(moduleDirectory, "IVA.exe");
+                File.WriteAllText(file, string.Empty);
+                File.WriteAllText(Path.Combine(moduleDirectory, "IVA Correcto.ico"), string.Empty);
+
+                var module = SiapReader.GetModuleModel(file);
+
+                Assert.Equal("IVA Correcto", module.AppName);
+                Assert.Equal("IVA Correcto", module.IconName);
+                Assert.Equal("IVA", module.ExecutableName);
+            }
+            finally
+            {
+                DeleteDirectory(directory);
+            }
+        }
+
         private static string CreateTempDirectory()
         {
             var directory = Path.Combine(Path.GetTempPath(), "SiapControl.Tests", Guid.NewGuid().ToString("N"));
