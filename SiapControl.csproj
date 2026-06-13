@@ -15,10 +15,10 @@
     <Product>SiapControl</Product>
     <Description>Administrador de multiples instancias de SIAP.</Description>
     <Copyright>Copyright ©  2023</Copyright>
-    <AssemblyVersion>1.0.4.7</AssemblyVersion>
-    <FileVersion>1.0.4.7</FileVersion>
+    <AssemblyVersion>1.0.4.8</AssemblyVersion>
+    <FileVersion>1.0.4.8</FileVersion>
     <NeutralLanguage>es-AR</NeutralLanguage>
-    <Version>1.0.4.7</Version>
+    <Version>1.0.4.8</Version>
   </PropertyGroup>
   <ItemGroup>
     <Compile Remove="SiapControl.Tests\**\*.cs" />
