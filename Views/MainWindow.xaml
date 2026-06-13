@@ -11,6 +11,7 @@
                 <MenuItem x:Name="SearchInstallationsMenuItem" Header="_Buscar instalaciones..."/>
                 <Separator/>
                 <MenuItem x:Name="UpdateAppMenuItem" Header="_Actualizar modulo..."/>
+                <MenuItem x:Name="AutoUpdaterMenuItem" Header="Autoupdater de _modulos..."/>
                 <Separator/>
                 <MenuItem x:Name="ExitMenuItem" Header="_Salir"/>
             </MenuItem>
@@ -23,6 +24,7 @@
             </MenuItem>
             <MenuItem Header="_Herramientas">
                 <MenuItem x:Name="ValidateAllMenuItem" Header="_Validar instalaciones"/>
+                <MenuItem x:Name="ConfigureAutoUpdaterMenuItem" Header="_Configurar autoupdater"/>
                 <MenuItem x:Name="CheckUpdateMenuItem" Header="Buscar _actualizacion de SiapControl"/>
             </MenuItem>
             <MenuItem Header="A_yuda">
@@ -50,6 +52,7 @@
                         <MenuItem x:Name="AddUserContextMenuItem" Header="Agregar instalacion"/>
                         <MenuItem x:Name="SearchInstallationsContextMenuItem" Header="Buscar instalaciones..."/>
                         <MenuItem x:Name="UpdateAppContextMenuItem" Header="Actualizar modulo..."/>
+                        <MenuItem x:Name="AutoUpdaterContextMenuItem" Header="Autoupdater de modulos..."/>
                         <Separator/>
                         <MenuItem x:Name="EditUserContextMenuItem" Header="Editar"/>
                         <MenuItem x:Name="ModulesContextMenuItem" Header="Ver modulos"/>
@@ -59,6 +62,7 @@
                         <MenuItem x:Name="DeleteUserContextMenuItem" Header="Eliminar"/>
                         <Separator/>
                         <MenuItem x:Name="CheckUpdateContextMenuItem" Header="Buscar actualizacion de SiapControl"/>
+                        <MenuItem x:Name="ConfigureAutoUpdaterContextMenuItem" Header="Configurar autoupdater"/>
                     </ContextMenu>
                 </DataGrid.ContextMenu>
                 <DataGrid.Columns>

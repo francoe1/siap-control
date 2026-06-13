@@ -22,6 +22,7 @@ namespace SiapControl.Data
         private static SqliteConnection? _connection;
         public static UserRepository Users { get; private set; } = null!;
         public static ModuleRepository UserModules { get; private set; } = null!;
+        public static AutoUpdateSettingsRepository AutoUpdateSettings { get; private set; } = null!;
 
         public static async Task ConnectAsync(IProgress<DatabaseInitializationProgress>? progress = null)
         {
@@ -69,6 +70,21 @@ namespace SiapControl.Data
                                             AppVersion TEXT,
                                             LastUpdate TEXT,
                                             FOREIGN KEY(UserId) REFERENCES Users(Id)
+                                        );";
+                    await cmd.ExecuteNonQueryAsync();
+                }
+
+                schemaProgress?.Report(new DatabaseInitializationProgress(92, "Creando configuracion de autoupdater..."));
+
+                using (var cmd = conn.CreateCommand())
+                {
+                    cmd.CommandText = @"CREATE TABLE IF NOT EXISTS AutoUpdateSettings (
+                                            Id INTEGER PRIMARY KEY CHECK (Id = 1),
+                                            AutoUpdateEnabled INTEGER NOT NULL,
+                                            ScheduledDaysMask INTEGER NOT NULL,
+                                            ScheduledTime TEXT NOT NULL,
+                                            StartWithWindows INTEGER NOT NULL,
+                                            LastAutoUpdateRun TEXT
                                         );";
                     await cmd.ExecuteNonQueryAsync();
                 }
@@ -122,6 +138,8 @@ namespace SiapControl.Data
 
             Users = new UserRepository(_connection);
             UserModules = new ModuleRepository(_connection);
+            AutoUpdateSettings = new AutoUpdateSettingsRepository(_connection);
+            AutoUpdateSettings.Get();
             progress?.Report(new DatabaseInitializationProgress(100, "Base de datos lista."));
         }
     }

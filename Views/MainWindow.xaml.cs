@@ -87,6 +87,10 @@ namespace SiapControl.Views
             DeleteUserContextMenuItem.Click += DeleteUserAsync;
             UpdateAppMenuItem.Click += UpdateApp;
             UpdateAppContextMenuItem.Click += UpdateApp;
+            AutoUpdaterMenuItem.Click += ShowAutoUpdater;
+            AutoUpdaterContextMenuItem.Click += ShowAutoUpdater;
+            ConfigureAutoUpdaterMenuItem.Click += ShowAutoUpdateSettings;
+            ConfigureAutoUpdaterContextMenuItem.Click += ShowAutoUpdateSettings;
             ModulesMenuItem.Click += ShowModules;
             ModulesContextMenuItem.Click += ShowModules;
             ValidateAllMenuItem.Click += ValidateAllInstallationsAsync;
@@ -95,7 +99,7 @@ namespace SiapControl.Views
             ValidateSelectedContextMenuItem.Click += ValidateSelectedInstallationsAsync;
             EditUserMenuItem.Click += EditUser;
             EditUserContextMenuItem.Click += EditUser;
-            ExitMenuItem.Click += (_, __) => Close();
+            ExitMenuItem.Click += (_, __) => ((App)Application.Current).ExitApplication();
             AboutMenuItem.Click += ShowAbout;
             UsersGrid.PreviewMouseRightButtonDown += SelectRowOnRightClick;
             UsersGrid.MouseDoubleClick += EditUserFromMouse;
@@ -116,6 +120,7 @@ namespace SiapControl.Views
                 SetStatus("Base de datos lista.", 0);
                 SetControlsEnabled(true);
                 LoadUsers();
+                ((App)Application.Current).StartBackgroundServices();
                 _ = CheckForUpdatesAsync(showNoUpdateMessage: false);
             }
             catch (Exception ex)
@@ -233,6 +238,10 @@ namespace SiapControl.Views
             AddUserContextMenuItem.IsEnabled = isEnabled;
             UpdateAppMenuItem.IsEnabled = isEnabled;
             UpdateAppContextMenuItem.IsEnabled = isEnabled;
+            AutoUpdaterMenuItem.IsEnabled = isEnabled;
+            AutoUpdaterContextMenuItem.IsEnabled = isEnabled;
+            ConfigureAutoUpdaterMenuItem.IsEnabled = isEnabled;
+            ConfigureAutoUpdaterContextMenuItem.IsEnabled = isEnabled;
             ValidateAllMenuItem.IsEnabled = isEnabled;
             ValidateAllContextMenuItem.IsEnabled = isEnabled;
             UpdateSelectionActions(isEnabled);
@@ -529,6 +538,18 @@ namespace SiapControl.Views
                 win.ShowDialog();
                 SetStatus("Actualizacion de modulo finalizada.", 0);
             }
+        }
+
+        private void ShowAutoUpdater(object sender, RoutedEventArgs e)
+        {
+            var win = new AutoUpdaterWindow { Owner = this };
+            win.ShowDialog();
+        }
+
+        private void ShowAutoUpdateSettings(object sender, RoutedEventArgs e)
+        {
+            var win = new AutoUpdateSettingsWindow { Owner = this };
+            win.ShowDialog();
         }
 
         private void OnSelectionChanged(object sender, SelectionChangedEventArgs e)

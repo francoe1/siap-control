@@ -1,0 +1,41 @@
+<Window x:Class="SiapControl.Views.AutoUpdaterWindow"
+        xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        Title="Autoupdater de modulos" Height="520" Width="820"
+        MinHeight="460" MinWidth="720"
+        WindowStartupLocation="CenterOwner">
+    <DockPanel>
+        <StatusBar DockPanel.Dock="Bottom">
+            <StatusBarItem>
+                <TextBlock x:Name="StatusText"/>
+            </StatusBarItem>
+            <StatusBarItem HorizontalAlignment="Right">
+                <ProgressBar x:Name="Progress" Minimum="0" Maximum="100" Value="0" Width="180"/>
+            </StatusBarItem>
+        </StatusBar>
+
+        <DockPanel Margin="16">
+            <ToolBarTray DockPanel.Dock="Top" Margin="0,0,0,12">
+                <ToolBar>
+                    <Label Content="Buscar:"/>
+                    <TextBox x:Name="SearchText" Width="260"/>
+                    <Separator/>
+                    <Button x:Name="PlanButton" Content="Evaluar"/>
+                    <Button x:Name="StartButton" Content="Actualizar"/>
+                </ToolBar>
+            </ToolBarTray>
+
+            <DataGrid x:Name="PlanGrid" AutoGenerateColumns="False">
+                <DataGrid.Columns>
+                    <DataGridTextColumn Header="Instalacion" Binding="{Binding UserName}" Width="*" IsReadOnly="True"/>
+                    <DataGridTextColumn Header="Modulo" Binding="{Binding ModuleName}" Width="*" IsReadOnly="True"/>
+                    <DataGridTextColumn Header="Version actual" Binding="{Binding InstalledVersion}" Width="*" IsReadOnly="True"/>
+                    <DataGridTextColumn Header="Aplicativo ARCA" Binding="{Binding RemoteName}" Width="*" IsReadOnly="True"/>
+                    <DataGridTextColumn Header="Version ARCA" Binding="{Binding RemoteVersion}" Width="*" IsReadOnly="True"/>
+                    <DataGridTextColumn Header="Estado" Binding="{Binding Status}" Width="1.3*" IsReadOnly="True"/>
+                    <DataGridCheckBoxColumn Header="Actualizar" Binding="{Binding Active, UpdateSourceTrigger=PropertyChanged}" Width="Auto"/>
+                </DataGrid.Columns>
+            </DataGrid>
+        </DockPanel>
+    </DockPanel>
+</Window>

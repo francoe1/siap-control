@@ -125,6 +125,17 @@ namespace SiapControl.Data
             }
         }
 
+        public IEnumerable<ModuleModel> FindAll()
+        {
+            using var cmd = _connection.CreateCommand();
+            cmd.CommandText = "SELECT Id, UserId, AppName, AppVersion, LastUpdate FROM Modules";
+            using var reader = cmd.ExecuteReader();
+            while (reader.Read())
+            {
+                yield return ReadModule(reader);
+            }
+        }
+
         public void Insert(ModuleModel module)
         {
             using var cmd = _connection.CreateCommand();
@@ -162,6 +173,87 @@ namespace SiapControl.Data
             cmd.CommandText = "DELETE FROM Modules WHERE UserId=@userId";
             cmd.Parameters.AddWithValue("@userId", userId);
             cmd.ExecuteNonQuery();
+        }
+    }
+
+    public class AutoUpdateSettingsRepository
+    {
+        private const int SettingsId = 1;
+        private readonly SqliteConnection _connection;
+
+        public AutoUpdateSettingsRepository(SqliteConnection connection)
+        {
+            _connection = connection;
+        }
+
+        public AutoUpdateSettingsModel Get()
+        {
+            using var cmd = _connection.CreateCommand();
+            cmd.CommandText = @"SELECT AutoUpdateEnabled, ScheduledDaysMask, ScheduledTime, StartWithWindows, LastAutoUpdateRun
+                                FROM AutoUpdateSettings
+                                WHERE Id=@id";
+            cmd.Parameters.AddWithValue("@id", SettingsId);
+
+            using var reader = cmd.ExecuteReader();
+            if (!reader.Read())
+            {
+                var settings = CreateDefault();
+                Save(settings);
+                return settings;
+            }
+
+            return new AutoUpdateSettingsModel
+            {
+                AutoUpdateEnabled = reader.GetInt32(0) == 1,
+                ScheduledDaysMask = reader.GetInt32(1),
+                ScheduledTime = TimeSpan.TryParse(reader.GetString(2), out TimeSpan time) ? time : new TimeSpan(20, 0, 0),
+                StartWithWindows = reader.GetInt32(3) == 1,
+                LastAutoUpdateRun = reader.IsDBNull(4) ? null : DateTime.Parse(reader.GetString(4))
+            };
+        }
+
+        public void Save(AutoUpdateSettingsModel settings)
+        {
+            using var cmd = _connection.CreateCommand();
+            cmd.CommandText = @"INSERT INTO AutoUpdateSettings
+                                    (Id, AutoUpdateEnabled, ScheduledDaysMask, ScheduledTime, StartWithWindows, LastAutoUpdateRun)
+                                VALUES
+                                    (@id, @enabled, @days, @time, @startup, @lastRun)
+                                ON CONFLICT(Id) DO UPDATE SET
+                                    AutoUpdateEnabled=excluded.AutoUpdateEnabled,
+                                    ScheduledDaysMask=excluded.ScheduledDaysMask,
+                                    ScheduledTime=excluded.ScheduledTime,
+                                    StartWithWindows=excluded.StartWithWindows,
+                                    LastAutoUpdateRun=excluded.LastAutoUpdateRun";
+            cmd.Parameters.AddWithValue("@id", SettingsId);
+            cmd.Parameters.AddWithValue("@enabled", settings.AutoUpdateEnabled ? 1 : 0);
+            cmd.Parameters.AddWithValue("@days", settings.ScheduledDaysMask);
+            cmd.Parameters.AddWithValue("@time", settings.ScheduledTime.ToString(@"hh\:mm"));
+            cmd.Parameters.AddWithValue("@startup", settings.StartWithWindows ? 1 : 0);
+            cmd.Parameters.AddWithValue("@lastRun", settings.LastAutoUpdateRun.HasValue ? settings.LastAutoUpdateRun.Value.ToString("o") : (object)DBNull.Value);
+            cmd.ExecuteNonQuery();
+        }
+
+        public void UpdateLastRun(DateTime lastRun)
+        {
+            AutoUpdateSettingsModel settings = Get();
+            settings.LastAutoUpdateRun = lastRun;
+            Save(settings);
+        }
+
+        private static AutoUpdateSettingsModel CreateDefault()
+        {
+            return new AutoUpdateSettingsModel
+            {
+                AutoUpdateEnabled = false,
+                ScheduledDaysMask = (1 << (int)DayOfWeek.Monday) |
+                                    (1 << (int)DayOfWeek.Tuesday) |
+                                    (1 << (int)DayOfWeek.Wednesday) |
+                                    (1 << (int)DayOfWeek.Thursday) |
+                                    (1 << (int)DayOfWeek.Friday),
+                ScheduledTime = new TimeSpan(20, 0, 0),
+                StartWithWindows = false
+            };
         }
     }
 }

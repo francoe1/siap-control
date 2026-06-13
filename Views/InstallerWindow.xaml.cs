@@ -21,6 +21,7 @@ namespace SiapControl.Views
     {
         private const string AFIP_PATH = @"C:\Windows\afipPath.sys";
         private readonly SetupReader _setup;
+        private readonly HashSet<int>? _targetUserIds;
         private readonly ObservableCollection<InstallUser> _rows = new();
 
         private class InstallUser : INotifyPropertyChanged
@@ -65,8 +66,14 @@ namespace SiapControl.Views
         }
 
         public InstallerWindow(SetupReader setup)
+            : this(setup, null)
+        {
+        }
+
+        public InstallerWindow(SetupReader setup, IEnumerable<int>? targetUserIds)
         {
             _setup = setup;
+            _targetUserIds = targetUserIds == null ? null : new HashSet<int>(targetUserIds);
             InitializeComponent();
             TitleText.Text = _setup.AppName;
             VersionText.Text = $"Version a instalar: {_setup.AppVersion}";
@@ -101,7 +108,9 @@ namespace SiapControl.Views
                 SetBusy(true);
                 _rows.Clear();
 
-                List<UserModel> users = Database.Users.FindAll().ToList();
+                List<UserModel> users = Database.Users.FindAll()
+                    .Where(user => _targetUserIds == null || _targetUserIds.Contains(user.Id))
+                    .ToList();
                 if (users.Count == 0)
                 {
                     StatusText.Text = "No hay instalaciones cargadas.";

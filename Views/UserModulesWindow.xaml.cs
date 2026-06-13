@@ -30,10 +30,14 @@ namespace SiapControl.Views
             Title = $"Modulos en {_user.User}";
             ModulesGrid.ItemsSource = _modules;
             SearchText.TextChanged += async (_, __) => await LoadDataAsync();
+            UpdateButton.Click += UpdateSelectedModuleAsync;
+            UpdateMenuItem.Click += UpdateSelectedModuleAsync;
+            UpdateContextMenuItem.Click += UpdateSelectedModuleAsync;
             ReindexButton.Click += ReindexAsync;
             ReindexMenuItem.Click += ReindexAsync;
             ReindexContextMenuItem.Click += ReindexAsync;
             CloseMenuItem.Click += (_, __) => Close();
+            ModulesGrid.SelectionChanged += (_, __) => UpdateActions();
             Loaded += async (_, __) => await LoadDataAsync();
         }
 
@@ -69,6 +73,53 @@ namespace SiapControl.Views
             if (requestId == _loadRequestId)
             {
                 StatusText.Text = $"Modulos visibles: {_modules.Count}.";
+                UpdateActions();
+            }
+        }
+
+        private async void UpdateSelectedModuleAsync(object sender, RoutedEventArgs e)
+        {
+            if (ModulesGrid.SelectedItem is not ModuleModel module)
+            {
+                MessageBox.Show(this, "Selecciona un modulo para actualizar.", "Sin seleccion", MessageBoxButton.OK, MessageBoxImage.Information);
+                return;
+            }
+
+            try
+            {
+                SetBusy(true);
+                StatusText.Text = "Evaluando actualizacion del modulo...";
+                Progress.IsIndeterminate = true;
+
+                var runner = new AutoUpdateRunner();
+                IReadOnlyList<AutoUpdatePlanItem> plan = await runner.BuildPlanAsync(_user.Id, new[] { module.Id });
+                AutoUpdatePlanItem? item = plan.FirstOrDefault();
+                if (item == null)
+                {
+                    StatusText.Text = "No se pudo evaluar el modulo seleccionado.";
+                    return;
+                }
+
+                if (!item.CanUpdate)
+                {
+                    StatusText.Text = GetPlanStatusText(item);
+                    MessageBox.Show(this, GetPlanStatusText(item), "Sin actualizacion", MessageBoxButton.OK, MessageBoxImage.Information);
+                    return;
+                }
+
+                StatusText.Text = $"Actualizando {module.AppName}...";
+                AutoUpdateRunResult result = await runner.RunPlanAsync(new[] { item });
+                StatusText.Text = result.Summary;
+                MessageBox.Show(this, result.Summary, "Actualizacion finalizada", MessageBoxButton.OK, MessageBoxImage.Information);
+                await LoadDataAsync();
+            }
+            catch (Exception ex)
+            {
+                MessageBox.Show(this, $"No se pudo actualizar el modulo.\n{ex.Message}", "Error", MessageBoxButton.OK, MessageBoxImage.Warning);
+            }
+            finally
+            {
+                SetBusy(false);
             }
         }
 
@@ -112,16 +163,44 @@ namespace SiapControl.Views
         private void SetBusy(bool isBusy)
         {
             SearchText.IsEnabled = !isBusy;
+            UpdateButton.IsEnabled = !isBusy && ModulesGrid.SelectedItem != null;
+            UpdateMenuItem.IsEnabled = !isBusy && ModulesGrid.SelectedItem != null;
+            UpdateContextMenuItem.IsEnabled = !isBusy && ModulesGrid.SelectedItem != null;
             ReindexButton.IsEnabled = !isBusy;
             ReindexMenuItem.IsEnabled = !isBusy;
             ReindexContextMenuItem.IsEnabled = !isBusy;
             ModulesGrid.IsEnabled = !isBusy;
         }
 
+        private void UpdateActions()
+        {
+            bool hasSelection = ModulesGrid.SelectedItem != null;
+            UpdateButton.IsEnabled = hasSelection;
+            UpdateMenuItem.IsEnabled = hasSelection;
+            UpdateContextMenuItem.IsEnabled = hasSelection;
+        }
+
         private void SetProgress(int current, int total)
         {
             Progress.IsIndeterminate = false;
             Progress.Value = total <= 0 ? 0 : Math.Round(current * 100d / total);
+        }
+
+        private static string GetPlanStatusText(AutoUpdatePlanItem item)
+        {
+            switch (item.Status)
+            {
+                case AutoUpdatePlanStatus.UpToDate:
+                    return "El modulo ya esta actualizado.";
+                case AutoUpdatePlanStatus.NoSafeMatch:
+                    return "No se encontro una coincidencia segura en ARCA.";
+                case AutoUpdatePlanStatus.NoCompatibleDownload:
+                    return "No se encontro una descarga compatible en ARCA.";
+                case AutoUpdatePlanStatus.VersionNotComparable:
+                    return item.Message;
+                default:
+                    return item.Message;
+            }
         }
     }
 }

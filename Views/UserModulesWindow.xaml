@@ -7,6 +7,7 @@
     <DockPanel>
         <Menu DockPanel.Dock="Top">
             <MenuItem Header="_Acciones">
+                <MenuItem x:Name="UpdateMenuItem" Header="_Actualizar modulo"/>
                 <MenuItem x:Name="ReindexMenuItem" Header="_Reindexar"/>
                 <Separator/>
                 <MenuItem x:Name="CloseMenuItem" Header="_Cerrar"/>
@@ -28,6 +29,7 @@
                     <Label Content="Buscar:" VerticalAlignment="Center"/>
                     <TextBox x:Name="SearchText" Width="260"/>
                     <Separator/>
+                    <Button x:Name="UpdateButton" Content="Actualizar"/>
                     <Button x:Name="ReindexButton" Content="Reindexar"/>
                 </ToolBar>
             </ToolBarTray>
@@ -35,6 +37,7 @@
             <DataGrid x:Name="ModulesGrid" AutoGenerateColumns="False">
                 <DataGrid.ContextMenu>
                     <ContextMenu>
+                        <MenuItem x:Name="UpdateContextMenuItem" Header="Actualizar modulo"/>
                         <MenuItem x:Name="ReindexContextMenuItem" Header="Reindexar"/>
                     </ContextMenu>
                 </DataGrid.ContextMenu>

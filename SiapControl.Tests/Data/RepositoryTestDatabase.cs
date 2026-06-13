@@ -44,6 +44,19 @@ namespace SiapControl.Tests.Data
                 cmd.ExecuteNonQuery();
             }
 
+            using (var cmd = Connection.CreateCommand())
+            {
+                cmd.CommandText = @"CREATE TABLE AutoUpdateSettings (
+                                        Id INTEGER PRIMARY KEY CHECK (Id = 1),
+                                        AutoUpdateEnabled INTEGER NOT NULL,
+                                        ScheduledDaysMask INTEGER NOT NULL,
+                                        ScheduledTime TEXT NOT NULL,
+                                        StartWithWindows INTEGER NOT NULL,
+                                        LastAutoUpdateRun TEXT
+                                    );";
+                cmd.ExecuteNonQuery();
+            }
+
             if (!seedUsers)
             {
                 return;
