@@ -1,41 +1,73 @@
 <Window x:Class="SiapControl.Views.MainWindow"
         xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
         xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
-        Title="SiapControl" Height="480" Width="860"
-        MinHeight="420" MinWidth="720"
+        Title="SiapControl" Height="520" Width="920"
+        MinHeight="460" MinWidth="760"
         WindowStartupLocation="CenterScreen">
-    <Grid Margin="16">
-        <Grid.RowDefinitions>
-            <RowDefinition Height="Auto"/>
-            <RowDefinition Height="*"/>
-            <RowDefinition Height="Auto"/>
-        </Grid.RowDefinitions>
+    <DockPanel>
+        <Menu DockPanel.Dock="Top">
+            <MenuItem Header="_Archivo">
+                <MenuItem x:Name="AddUserMenuItem" Header="_Agregar instalacion"/>
+                <MenuItem x:Name="SearchInstallationsMenuItem" Header="_Buscar instalaciones..."/>
+                <Separator/>
+                <MenuItem x:Name="UpdateAppMenuItem" Header="_Actualizar modulo..."/>
+                <Separator/>
+                <MenuItem x:Name="ExitMenuItem" Header="_Salir"/>
+            </MenuItem>
+            <MenuItem Header="_Instalacion">
+                <MenuItem x:Name="EditUserMenuItem" Header="_Editar"/>
+                <MenuItem x:Name="ModulesMenuItem" Header="_Modulos"/>
+                <MenuItem x:Name="ValidateSelectedMenuItem" Header="_Validar seleccion"/>
+                <Separator/>
+                <MenuItem x:Name="DeleteUserMenuItem" Header="E_liminar"/>
+            </MenuItem>
+            <MenuItem Header="_Herramientas">
+                <MenuItem x:Name="ValidateAllMenuItem" Header="_Validar instalaciones"/>
+                <MenuItem x:Name="CheckUpdateMenuItem" Header="Buscar _actualizacion de SiapControl"/>
+            </MenuItem>
+            <MenuItem Header="A_yuda">
+                <MenuItem x:Name="AboutMenuItem" Header="_Acerca de SiapControl"/>
+            </MenuItem>
+        </Menu>
 
-        <Border x:Name="StartupStatusPanel" Grid.Row="0" Padding="12" Margin="0,0,0,12" Background="#EFF6FF" BorderBrush="#BFD7FF" BorderThickness="1" CornerRadius="6">
-            <Grid>
-                <Grid.ColumnDefinitions>
-                    <ColumnDefinition Width="*"/>
-                    <ColumnDefinition Width="180"/>
-                </Grid.ColumnDefinitions>
-                <TextBlock x:Name="StartupStatusText" VerticalAlignment="Center" Text="Preparando base de datos..."/>
-                <ProgressBar x:Name="StartupProgressBar" Grid.Column="1" Minimum="0" Maximum="100" Value="0"/>
-            </Grid>
-        </Border>
+        <StatusBar DockPanel.Dock="Bottom">
+            <StatusBarItem>
+                <TextBlock x:Name="StartupStatusText" Text="Preparando base de datos..."/>
+            </StatusBarItem>
+            <Separator/>
+            <StatusBarItem>
+                <TextBlock x:Name="StatusCountText" Text="0 instalaciones"/>
+            </StatusBarItem>
+            <StatusBarItem HorizontalAlignment="Right">
+                <ProgressBar x:Name="StartupProgressBar" Minimum="0" Maximum="100" Value="0" Width="180"/>
+            </StatusBarItem>
+        </StatusBar>
 
-        <DataGrid x:Name="UsersGrid" Grid.Row="1" AutoGenerateColumns="False">
-            <DataGrid.Columns>
-                <DataGridTextColumn Header="Id" Binding="{Binding Id}" Width="Auto" IsReadOnly="True" />
-                <DataGridTextColumn Header="Usuario" Binding="{Binding User}" Width="*" />
-                <DataGridTextColumn Header="Ruta" Binding="{Binding Path}" Width="2*" />
-            </DataGrid.Columns>
-        </DataGrid>
-
-        <StackPanel Grid.Row="2" Orientation="Horizontal" HorizontalAlignment="Right" Margin="0,14,0,0">
-            <Button x:Name="CheckUpdateButton" Content="Buscar actualización" Margin="0,0,8,0" IsEnabled="False" />
-            <Button x:Name="SearchInstallationsButton" Content="Buscar instalaciones" Margin="0,0,8,0" IsEnabled="False" />
-            <Button x:Name="AddUserButton" Content="Agregar" Margin="0,0,8,0" IsEnabled="False" />
-            <Button x:Name="UpdateButton" Content="Actualizar" Margin="0,0,8,0" IsEnabled="False" />
-            <Button x:Name="ModulesButton" Content="Módulos" IsEnabled="False" />
-        </StackPanel>
-    </Grid>
+        <DockPanel Margin="16">
+            <DataGrid x:Name="UsersGrid" AutoGenerateColumns="False" SelectionMode="Extended" SelectionUnit="FullRow">
+                <DataGrid.ContextMenu>
+                    <ContextMenu>
+                        <MenuItem x:Name="AddUserContextMenuItem" Header="Agregar instalacion"/>
+                        <MenuItem x:Name="SearchInstallationsContextMenuItem" Header="Buscar instalaciones..."/>
+                        <MenuItem x:Name="UpdateAppContextMenuItem" Header="Actualizar modulo..."/>
+                        <Separator/>
+                        <MenuItem x:Name="EditUserContextMenuItem" Header="Editar"/>
+                        <MenuItem x:Name="ModulesContextMenuItem" Header="Ver modulos"/>
+                        <MenuItem x:Name="ValidateSelectedContextMenuItem" Header="Validar seleccion"/>
+                        <MenuItem x:Name="ValidateAllContextMenuItem" Header="Validar instalaciones"/>
+                        <Separator/>
+                        <MenuItem x:Name="DeleteUserContextMenuItem" Header="Eliminar"/>
+                        <Separator/>
+                        <MenuItem x:Name="CheckUpdateContextMenuItem" Header="Buscar actualizacion de SiapControl"/>
+                    </ContextMenu>
+                </DataGrid.ContextMenu>
+                <DataGrid.Columns>
+                    <DataGridTextColumn Header="Id" Binding="{Binding Id}" Width="Auto" IsReadOnly="True" />
+                    <DataGridTextColumn Header="Usuario" Binding="{Binding User}" Width="*" IsReadOnly="True" />
+                    <DataGridTextColumn Header="Ruta" Binding="{Binding Path}" Width="2*" IsReadOnly="True" />
+                    <DataGridTextColumn Header="Estado" Binding="{Binding ValidationStatus}" Width="*" IsReadOnly="True" />
+                </DataGrid.Columns>
+            </DataGrid>
+        </DockPanel>
+    </DockPanel>
 </Window>
